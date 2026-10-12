@@ -118,14 +118,16 @@ export default function Layout() {
                 >
                   Empleados
                 </NavLink>
-                <NavLink
-                  to="/usuarios"
-                  className={({ isActive }) =>
-                    `${linkBase} ${isActive ? linkActive : linkIdle}`
-                  }
-                >
-                  Usuarios
-                </NavLink>
+                {(user?.roles.includes('SUPERADMIN') ?? false) && (
+                  <NavLink
+                    to="/usuarios"
+                    className={({ isActive }) =>
+                      `${linkBase} ${isActive ? linkActive : linkIdle}`
+                    }
+                  >
+                    Usuarios
+                  </NavLink>
+                )}
                 <NavLink
                   to="/limpieza"
                   className={({ isActive }) =>
@@ -225,7 +227,9 @@ export default function Layout() {
                 <MobileNavLink to="/grilla">Grilla</MobileNavLink>
                 <MobileNavLink to="/calendario">Calendario</MobileNavLink>
                 <MobileNavLink to="/empleados">Empleados</MobileNavLink>
-                <MobileNavLink to="/usuarios">Usuarios</MobileNavLink>
+                {(user?.roles.includes('SUPERADMIN') ?? false) && (
+                  <MobileNavLink to="/usuarios">Usuarios</MobileNavLink>
+                )}
                 <MobileNavLink to="/limpieza">Limpieza</MobileNavLink>
                 <MobileNavLink to="/vacaciones">Vacaciones</MobileNavLink>
                 <MobileNavLink to="/estadisticas">Estadisticas</MobileNavLink>
