@@ -127,6 +127,14 @@ export default function Layout() {
                   Usuarios
                 </NavLink>
                 <NavLink
+                  to="/limpieza"
+                  className={({ isActive }) =>
+                    `${linkBase} ${isActive ? linkActive : linkIdle}`
+                  }
+                >
+                  Limpieza
+                </NavLink>
+                <NavLink
                   to="/vacaciones"
                   className={({ isActive }) =>
                     `${linkBase} ${isActive ? linkActive : linkIdle}`
@@ -218,6 +226,7 @@ export default function Layout() {
                 <MobileNavLink to="/calendario">Calendario</MobileNavLink>
                 <MobileNavLink to="/empleados">Empleados</MobileNavLink>
                 <MobileNavLink to="/usuarios">Usuarios</MobileNavLink>
+                <MobileNavLink to="/limpieza">Limpieza</MobileNavLink>
                 <MobileNavLink to="/vacaciones">Vacaciones</MobileNavLink>
                 <MobileNavLink to="/estadisticas">Estadisticas</MobileNavLink>
                 <MobileNavLink to="/settings">Settings</MobileNavLink>

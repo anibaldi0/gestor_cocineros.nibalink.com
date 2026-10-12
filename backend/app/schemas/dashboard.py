@@ -6,6 +6,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.db.models.enums import EstadoTurno
+from app.schemas.limpieza import LimpiezaEmpleadoOut
 
 
 class EmpleadoInfoOut(BaseModel):
@@ -64,4 +65,4 @@ class DashboardEmpleadoOut(BaseModel):
     feriados_trabajados: list[FeriadoTrabajadoOut]
     turnos: list[TurnoMesOut]
     # Placeholder para el proximo chunk de limpieza
-    limpieza: list = []
+    limpieza: list[LimpiezaEmpleadoOut] = []

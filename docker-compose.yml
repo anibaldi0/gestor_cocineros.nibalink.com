@@ -30,13 +30,6 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:8000:8000"
-    volumes:
-      # Solo en dev: permite editar codigo, migraciones y tests sin rebuild.
-      - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic
-      - ./backend/alembic.ini:/app/alembic.ini
-      - ./backend/tests:/app/tests
-      - ./backend/pytest.ini:/app/pytest.ini
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
       interval: 10s

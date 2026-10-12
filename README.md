@@ -160,3 +160,29 @@ Tunnel. El subdominio es `gestorcocina.nibalink.com`.
 
 Los secretos van en un `.env` que no se sube al repo. El
 `.env.example` y `.env.production.example` sirven de referencia.
+
+## Limpieza (carga manual)
+
+Para el MVP, la limpieza se carga a mano. No hay algoritmo automatico
+todavia (el codigo existe pero esta parkeado).
+
+Tipos de tarea (con color por defecto):
+- Camara: celeste (#06b6d4).
+- Bano: violeta (#8b5cf6).
+- Sector: verde (#22c55e).
+
+Reglas:
+- Un empleado por dia puede tener una sola tarea de limpieza.
+- Un tipo de tarea por dia puede asignarse a un solo empleado.
+- No hay validacion de grilla (el editor decide a mano).
+
+Endpoints:
+- `GET    /api/v1/limpieza/tipos`
+- `GET    /api/v1/limpieza/mes?anio&mes`
+- `POST   /api/v1/limpieza/asignaciones`
+- `PATCH  /api/v1/limpieza/asignaciones/{id}`
+- `DELETE /api/v1/limpieza/asignaciones/{id}`
+
+El dashboard del empleado tiene una pestana "Limpieza" que muestra las
+asignaciones del mes en curso, con la fecha y una pastilla de color
+segun el tipo de tarea.

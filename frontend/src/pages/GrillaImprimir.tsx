@@ -7,7 +7,11 @@ import {
   etiquetaEstado,
 } from '../lib/colores'
 import { formatDNI } from '../lib/format'
-import type { GrillaMes, TurnoGrilla } from '../lib/types'
+import type {
+  AsignacionLimpiezaGrilla,
+  GrillaMes,
+  TurnoGrilla,
+} from '../lib/types'
 
 export default function GrillaImprimir() {
   const [params] = useSearchParams()
@@ -40,6 +44,15 @@ export default function GrillaImprimir() {
     if (!grilla) return map
     for (const t of grilla.turnos) {
       map.set(`${t.empleado_id}|${t.fecha}`, t)
+    }
+    return map
+  }, [grilla])
+
+  const limpiezaPorCelda = useMemo(() => {
+    const map = new Map<string, AsignacionLimpiezaGrilla>()
+    if (!grilla) return map
+    for (const l of grilla.limpieza ?? []) {
+      map.set(`${l.empleado_id}|${l.fecha}`, l)
     }
     return map
   }, [grilla])
@@ -137,10 +150,20 @@ export default function GrillaImprimir() {
                     estado && estado !== 'TRABAJO'
                       ? colorEstado[estado]
                       : ''
+                  const limpieza = limpiezaPorCelda.get(
+                    `${emp.id}|${d.fecha}`,
+                  )
                   return (
                     <td
                       key={d.fecha}
                       className={`border border-slate-300 text-center text-[9px] leading-tight px-0.5 py-0.5 ${fondo}`}
+                      style={
+                        limpieza
+                          ? {
+                              boxShadow: `inset 0 0 0 2px ${limpieza.tipo_tarea_color}`,
+                            }
+                          : undefined
+                      }
                     >
                       {estado === 'TRABAJO' ? (
                         <>

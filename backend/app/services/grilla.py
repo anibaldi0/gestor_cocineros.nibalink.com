@@ -8,9 +8,11 @@ from datetime import date
 from sqlalchemy.orm import Session, joinedload
 
 from app.db.models.jornada import Turno
+from app.db.models.limpieza import AsignacionLimpieza
 from app.db.models.personas import Empleado
 from app.schemas.calendario import EventoDiaOut
 from app.schemas.grilla import (
+    AsignacionLimpiezaGrillaOut,
     AlertaDiaOut,
     CoberturaDiaOut,
     DiaGrillaOut,
@@ -208,6 +210,27 @@ def construir_grilla(db: Session, anio: int, mes: int) -> GrillaMesOut:
         for f in [m["fecha"] for m in dias_meta]
     ]
 
+    # Asignaciones de limpieza del mes
+    limpieza_rows = (
+        db.query(AsignacionLimpieza)
+        .options(joinedload(AsignacionLimpieza.tipo_tarea))
+        .filter(AsignacionLimpieza.fecha >= primero)
+        .filter(AsignacionLimpieza.fecha <= ultimo)
+        .all()
+    )
+    limpieza_out = [
+        AsignacionLimpiezaGrillaOut(
+            id=r.id,
+            empleado_id=r.empleado_id,
+            fecha=r.fecha,
+            tipo_tarea_id=r.tipo_tarea_id,
+            tipo_tarea_codigo=r.tipo_tarea.codigo,
+            tipo_tarea_nombre=r.tipo_tarea.nombre,
+            tipo_tarea_color=r.tipo_tarea.color_hex,
+        )
+        for r in limpieza_rows
+    ]
+
     periodo = get_periodo_grilla(db, anio, mes)
     estado_periodo = periodo.estado.value if periodo else "BORRADOR"
 
@@ -221,4 +244,5 @@ def construir_grilla(db: Session, anio: int, mes: int) -> GrillaMesOut:
         cobertura=cobertura_out,
         alertas=alertas_out,
         estado_por_dia=estado_por_dia_out,
+        limpieza=limpieza_out,
     )

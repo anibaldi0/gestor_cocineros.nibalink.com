@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, ApiError } from '../lib/api'
 import { etiquetaEstado } from '../lib/colores'
 import { formatFecha } from '../lib/format'
-import type { DashboardEmpleado, TurnoMes } from '../lib/types'
+import type { DashboardEmpleado, LimpiezaEmpleado, TurnoMes } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
 
 export default function MiDashboard() {
@@ -14,7 +14,7 @@ export default function MiDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<
-    'turnos' | 'francos' | 'feriados' | 'limpieza'
+    'turnos' | 'francos' | 'feriados'
   >('turnos')
 
   async function cargar() {
@@ -113,7 +113,6 @@ export default function MiDashboard() {
             ['turnos', 'Turnos'],
             ['francos', `Francos (${data.francos.length})`],
             ['feriados', `Feriados (${data.feriados_trabajados.length})`],
-            ['limpieza', 'Limpieza'],
           ] as const
         ).map(([k, label]) => (
           <button
@@ -130,9 +129,7 @@ export default function MiDashboard() {
         ))}
       </nav>
 
-      {tab === 'turnos' && (
-        <ListaTurnos turnos={data.turnos} />
-      )}
+      {tab === 'turnos' && <ListaTurnos data={data} />}
 
       {tab === 'francos' && (
         <ListaFrancos data={data} />
@@ -142,7 +139,7 @@ export default function MiDashboard() {
         <ListaFeriados data={data} />
       )}
 
-      {tab === 'limpieza' && <ListaLimpieza />}
+
     </div>
   )
 }
@@ -186,7 +183,8 @@ function StatCard({
   )
 }
 
-function ListaTurnos({ turnos }: { turnos: TurnoMes[] }) {
+function ListaTurnos({ data }: { data: DashboardEmpleado }) {
+  const turnos = data.turnos
   if (turnos.length === 0) {
     return (
       <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-xl px-4 py-6 text-center">
@@ -194,18 +192,25 @@ function ListaTurnos({ turnos }: { turnos: TurnoMes[] }) {
       </p>
     )
   }
+
+  // Indice de limpieza por fecha.
+  const limpiezaPorFecha = new Map(
+    (data.limpieza ?? []).map((l) => [l.fecha, l]),
+  )
+
   return (
     <ul className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
-      {turnos.map((t) => (
-        <li
-          key={t.fecha}
-          className="px-4 py-3 flex items-start justify-between gap-3"
-        >
-          <div className="flex items-baseline gap-3 min-w-0">
+      {turnos.map((t) => {
+        const limpieza = limpiezaPorFecha.get(t.fecha)
+        return (
+          <li
+            key={t.fecha}
+            className="px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-1"
+          >
             <span className="text-sm text-sky-700 font-medium shrink-0">
               {formatFecha(t.fecha)}
             </span>
-            <span className="text-base font-semibold text-slate-900 truncate">
+            <span className="text-base font-semibold text-slate-900 truncate flex-1 min-w-0">
               {t.estado === 'TRABAJO'
                 ? `TRABAJO - ${t.codigo_corto ?? ''} ${t.hora_inicio ?? ''}-${t.hora_fin ?? ''} (${t.horas}hs)`
                 : t.estado === 'FRANCO'
@@ -214,14 +219,22 @@ function ListaTurnos({ turnos }: { turnos: TurnoMes[] }) {
                     : 'FRANCO'
                   : etiquetaEstado[t.estado]}
             </span>
-          </div>
-          {t.horas_extra > 0 && (
-            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 whitespace-nowrap">
-              +{t.horas_extra} HE
-            </span>
-          )}
-        </li>
-      ))}
+            {limpieza && (
+              <span
+                className="text-xs px-2 py-1 rounded-full text-white font-semibold whitespace-nowrap"
+                style={{ backgroundColor: limpieza.tipo_tarea_color }}
+              >
+                {limpieza.tipo_tarea_nombre}
+              </span>
+            )}
+            {t.horas_extra > 0 && (
+              <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 whitespace-nowrap">
+                +{t.horas_extra} HE
+              </span>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -275,38 +288,6 @@ function ListaFeriados({ data }: { data: DashboardEmpleado }) {
           </span>
           <span className="text-base font-semibold text-slate-900 truncate">
             {f.nombre_evento} - {f.codigo_corto ?? ''} {f.horas}hs
-          </span>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-
-function ListaLimpieza() {
-  // Placeholder hasta que exista el chunk de limpieza.
-  // Dejo el mismo patron visual que Turnos/Francos/Feriados para que
-  // cuando lleguen los datos reales sea solo reemplazar el array.
-  const items: { fecha: string; tarea: string }[] = []
-  if (items.length === 0) {
-    return (
-      <p className="text-sm text-slate-500 bg-white border border-slate-200 rounded-xl px-4 py-6 text-center">
-        Proximamente vas a ver aca tus fechas de limpieza.
-      </p>
-    )
-  }
-  return (
-    <ul className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
-      {items.map((it) => (
-        <li
-          key={it.fecha}
-          className="px-4 py-3 flex items-baseline gap-3 min-w-0"
-        >
-          <span className="text-sm text-sky-700 font-medium shrink-0">
-            {formatFecha(it.fecha)}
-          </span>
-          <span className="text-base font-semibold text-slate-900 truncate">
-            {it.tarea}
           </span>
         </li>
       ))}

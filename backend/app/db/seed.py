@@ -237,9 +237,9 @@ TIPOS_EVENTO: list[dict] = [
 # Tipos de tarea de limpieza
 # ------------------------------------------------------------------
 TIPOS_TAREA_LIMPIEZA: list[dict] = [
-    {"codigo": "CAMARA", "nombre": "Camara"},
-    {"codigo": "BANO", "nombre": "Bano"},
-    {"codigo": "SECTOR", "nombre": "Sector"},
+    {"codigo": "CAMARA", "nombre": "Camara", "color_hex": "#06b6d4"},
+    {"codigo": "BANO", "nombre": "Bano", "color_hex": "#8b5cf6"},
+    {"codigo": "SECTOR", "nombre": "Sector", "color_hex": "#22c55e"},
 ]
 
 # ------------------------------------------------------------------
@@ -354,11 +354,17 @@ def seed_tipos_evento(db: Session) -> None:
 
 
 def seed_tipos_tarea_limpieza(db: Session) -> None:
-    existentes = {t.codigo for t in db.query(TipoTareaLimpieza).all()}
+    existentes = {t.codigo: t for t in db.query(TipoTareaLimpieza).all()}
     for spec in TIPOS_TAREA_LIMPIEZA:
-        if spec["codigo"] in existentes:
-            continue
-        db.add(TipoTareaLimpieza(**spec))
+        codigo = spec["codigo"]
+        if codigo in existentes:
+            t = existentes[codigo]
+            for k, v in spec.items():
+                if k == "codigo":
+                    continue
+                setattr(t, k, v)
+        else:
+            db.add(TipoTareaLimpieza(**spec))
     db.commit()
 
 

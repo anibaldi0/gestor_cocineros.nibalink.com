@@ -9,6 +9,7 @@ import {
 } from '../lib/colores'
 import type {
   AlertaDia,
+  AsignacionLimpiezaGrilla,
   ContextoFranja,
   DiaGrilla,
   EstadoPeriodoGrilla,
@@ -18,6 +19,7 @@ import type {
   Franja,
   GrillaMes,
   TurnoGrilla,
+  TipoTareaLimpieza,
 } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
 import ModalCF from '../components/ModalCF'
@@ -101,6 +103,8 @@ interface Seleccion {
   fecha: string
   turno: TurnoGrilla | null
   contexto: ContextoFranja
+  limpiezaAsignada: AsignacionLimpiezaGrilla | null
+  limpiezaOtras: AsignacionLimpiezaGrilla[]
 }
 
 export default function Grilla() {
@@ -111,6 +115,7 @@ export default function Grilla() {
 
   const [grilla, setGrilla] = useState<GrillaMes | null>(null)
   const [franjas, setFranjas] = useState<Franja[]>([])
+  const [tiposLimpieza, setTiposLimpieza] = useState<TipoTareaLimpieza[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [seleccion, setSeleccion] = useState<Seleccion | null>(null)
@@ -163,6 +168,11 @@ export default function Grilla() {
       } catch {
         setFranjas([])
       }
+      try {
+        setTiposLimpieza(await api.limpiezaTipos())
+      } catch {
+        setTiposLimpieza([])
+      }
     })()
   }, [])
 
@@ -180,6 +190,15 @@ export default function Grilla() {
     if (!grilla) return map
     for (const e of grilla.estado_por_dia) {
       map.set(e.fecha, e)
+    }
+    return map
+  }, [grilla])
+
+  const limpiezaPorCelda = useMemo(() => {
+    const map = new Map<string, AsignacionLimpiezaGrilla>()
+    if (!grilla) return map
+    for (const l of grilla.limpieza ?? []) {
+      map.set(`${l.empleado_id}|${l.fecha}`, l)
     }
     return map
   }, [grilla])
@@ -488,24 +507,49 @@ export default function Grilla() {
                         ? colorEstado[estado]
                         : colorCeldaVacia(d)
                   const esCF = t?.es_franco_protegido ?? false
+                  const limpieza = limpiezaPorCelda.get(
+                    `${emp.id}|${d.fecha}`,
+                  )
+                  const tooltipBase = t
+                    ? `${estado}${esCF ? ' (CF)' : ''} ${t.horas ? `- ${t.horas}hs` : ''}${t.nota ? ` - ${t.nota}` : ''}`
+                    : ''
+                  const tooltipLimpieza = limpieza
+                    ? `Limpia: ${limpieza.tipo_tarea_nombre}`
+                    : ''
+                  const tooltip = [tooltipBase, tooltipLimpieza]
+                    .filter(Boolean)
+                    .join(' | ')
                   return (
                     <td
                       key={d.fecha}
                       onClick={() => {
                         if (!puedeEditar) return
+                        const otrasLimpiezas = (grilla.limpieza ?? []).filter(
+                          (l) =>
+                            l.fecha === d.fecha && l.empleado_id !== emp.id,
+                        )
                         setSeleccion({
                           empleado: emp,
                           fecha: d.fecha,
                           turno: t ?? null,
                           contexto: contextoDelDia(d),
+                          limpiezaAsignada: limpieza ?? null,
+                          limpiezaOtras: otrasLimpiezas,
                         })
                       }}
-                      title={
-                        t
-                          ? `${estado}${esCF ? ' (CF)' : ''} ${t.horas ? `- ${t.horas}hs` : ''}${t.nota ? ` - ${t.nota}` : ''}`
+                      title={tooltip}
+                      className={`border-r border-slate-100 text-center align-middle relative ${
+                        puedeEditar
+                          ? 'cursor-pointer hover:ring-2 hover:ring-slate-900/20'
                           : ''
+                      } ${fondo}`}
+                      style={
+                        limpieza
+                          ? {
+                              boxShadow: `inset 0 0 0 3px ${limpieza.tipo_tarea_color}`,
+                            }
+                          : undefined
                       }
-                      className={`border-r border-slate-100 text-center align-middle ${puedeEditar ? 'cursor-pointer hover:ring-2 hover:ring-slate-900/20' : ''} ${fondo}`}
                     >
                       <div className="py-1 px-0.5 leading-tight">
                         {estado === 'TRABAJO' ? (
@@ -613,6 +657,7 @@ export default function Grilla() {
         <EditorCelda
           seleccion={seleccion}
           franjas={franjas}
+          tiposLimpieza={tiposLimpieza}
           onClose={() => setSeleccion(null)}
           onGuardado={async () => {
             setSeleccion(null)
@@ -680,6 +725,7 @@ interface EditorProps {
   onGuardado: () => Promise<void> | void
   onPedirCF: (notaExistente: string | null) => void
   onEliminar: () => Promise<void> | void
+  tiposLimpieza: TipoTareaLimpieza[]
 }
 
 function EditorCelda({
@@ -689,6 +735,7 @@ function EditorCelda({
   onGuardado,
   onPedirCF,
   onEliminar,
+  tiposLimpieza,
 }: EditorProps) {
   const { empleado, fecha, turno } = seleccion
   const estadoInicial = aEstadoVisual(
@@ -701,6 +748,9 @@ function EditorCelda({
   )
   const [horas, setHoras] = useState<number>(turno?.horas ?? 8)
   const [horasExtra, setHorasExtra] = useState<number>(turno?.horas_extra ?? 0)
+  const [tareaLimpiezaId, setTareaLimpiezaId] = useState<number | null>(
+    seleccion.limpiezaAsignada?.tipo_tarea_id ?? null,
+  )
   const [guardando, setGuardando] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -720,6 +770,17 @@ function EditorCelda({
     }
   }
 
+  // Solo se permite asignar limpieza en estados que implican presencia.
+  const permiteLimpieza =
+    estadoVisual === 'TRABAJO' ||
+    estadoVisual === 'TRABAJO_HE' ||
+    estadoVisual === 'FRANCO_HE'
+
+  // Tareas ya tomadas por OTROS empleados ese dia.
+  const tareasTomadasPorOtros = new Set(
+    seleccion.limpiezaOtras.map((l) => l.tipo_tarea_id),
+  )
+
   async function guardar() {
     setErr(null)
     setGuardando(true)
@@ -731,10 +792,39 @@ function EditorCelda({
         franja_id: esTrabajo ? franjaId : null,
         horas: esTrabajo ? horas : 0,
         horas_extra: tieneHE ? horasExtra : 0,
-        // Preservar CF si seguimos en FRANCO.
         es_franco_protegido: esFranco && (turno?.es_franco_protegido ?? false),
         nota: esFranco ? (turno?.nota ?? null) : null,
       })
+
+      // Sincronizar limpieza.
+      const teniaLimpieza = seleccion.limpiezaAsignada
+      const quiereLimpieza =
+        permiteLimpieza && tareaLimpiezaId !== null
+
+      if (quiereLimpieza) {
+        if (teniaLimpieza) {
+          // Cambio de tarea o mismo tipo.
+          if (teniaLimpieza.tipo_tarea_id !== tareaLimpiezaId) {
+            await api.eliminarAsignacionLimpieza(teniaLimpieza.id)
+            await api.crearAsignacionLimpieza({
+              empleado_id: empleado.id,
+              fecha,
+              tipo_tarea_id: tareaLimpiezaId,
+            })
+          }
+          // Mismo tipo: no hay nada que hacer.
+        } else {
+          await api.crearAsignacionLimpieza({
+            empleado_id: empleado.id,
+            fecha,
+            tipo_tarea_id: tareaLimpiezaId,
+          })
+        }
+      } else if (teniaLimpieza) {
+        // El editor quito la limpieza (o el estado ya no permite).
+        await api.eliminarAsignacionLimpieza(teniaLimpieza.id)
+      }
+
       await onGuardado()
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : 'Error')
@@ -836,6 +926,39 @@ function EditorCelda({
                 ? 'Se pagan al 50% (despues del turno).'
                 : 'Se pagan al 100% (franco trabajado).'}
             </span>
+          </label>
+        )}
+
+        {permiteLimpieza && (
+          <label className="block space-y-1">
+            <span className="text-sm font-medium text-slate-700">
+              Tarea de limpieza
+            </span>
+            <select
+              value={tareaLimpiezaId ?? ''}
+              onChange={(e) =>
+                setTareaLimpiezaId(
+                  e.target.value ? Number(e.target.value) : null,
+                )
+              }
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base"
+            >
+              <option value="">Sin limpieza</option>
+              {tiposLimpieza.map((t) => {
+                const tomada = tareasTomadasPorOtros.has(t.id)
+                return (
+                  <option key={t.id} value={t.id} disabled={tomada}>
+                    {t.nombre}
+                    {tomada ? ' (ya asignada)' : ''}
+                  </option>
+                )
+              })}
+            </select>
+            {tareaLimpiezaId && (
+              <span className="text-xs text-slate-400">
+                Se guardara al empleado como responsable de esta tarea ese dia.
+              </span>
+            )}
           </label>
         )}
 

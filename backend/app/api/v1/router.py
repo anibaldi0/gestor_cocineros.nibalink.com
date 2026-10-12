@@ -9,6 +9,7 @@ from app.api.v1 import (
     estadisticas,
     franjas,
     grilla,
+    limpieza,
     me,
     publicacion,
     settings,
@@ -26,6 +27,7 @@ api_router.include_router(empleado_usuario.router)
 api_router.include_router(estadisticas.router)
 api_router.include_router(franjas.router)
 api_router.include_router(grilla.router)
+api_router.include_router(limpieza.router)
 api_router.include_router(me.router)
 api_router.include_router(publicacion.router)
 api_router.include_router(settings.router)

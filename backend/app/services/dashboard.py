@@ -13,7 +13,9 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.db.models.jornada import Turno
+from app.db.models.limpieza import AsignacionLimpieza
 from app.db.models.personas import Empleado, Usuario
+from app.schemas.limpieza import LimpiezaEmpleadoOut
 from app.schemas.dashboard import (
     DashboardEmpleadoOut,
     EmpleadoInfoOut,
@@ -160,6 +162,28 @@ def construir_dashboard(
     # Stats
     stats = _stats_del_mes(turnos, empleado.horas_semana_max)
 
+    # Asignaciones de limpieza del mes
+    limpieza_rows = (
+        db.query(AsignacionLimpieza)
+        .options(joinedload(AsignacionLimpieza.tipo_tarea))
+        .filter(AsignacionLimpieza.empleado_id == empleado.id)
+        .filter(AsignacionLimpieza.fecha >= primero)
+        .filter(AsignacionLimpieza.fecha <= ultimo)
+        .order_by(AsignacionLimpieza.fecha)
+        .all()
+    )
+    limpieza_out = [
+        LimpiezaEmpleadoOut(
+            fecha=r.fecha,
+            tipo_tarea_id=r.tipo_tarea_id,
+            tipo_tarea_codigo=r.tipo_tarea.codigo,
+            tipo_tarea_nombre=r.tipo_tarea.nombre,
+            tipo_tarea_color=r.tipo_tarea.color_hex,
+            observacion=r.observacion,
+        )
+        for r in limpieza_rows
+    ]
+
     return DashboardEmpleadoOut(
         empleado=EmpleadoInfoOut(
             id=empleado.id,
@@ -174,5 +198,5 @@ def construir_dashboard(
         francos=francos,
         feriados_trabajados=feriados_trabajados,
         turnos=turnos_out,
-        limpieza=[],
+        limpieza=limpieza_out,
     )

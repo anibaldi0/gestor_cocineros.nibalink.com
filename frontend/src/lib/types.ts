@@ -106,6 +106,16 @@ export interface TurnoGrilla {
   nota: string | null
 }
 
+export interface AsignacionLimpiezaGrilla {
+  id: number
+  empleado_id: number
+  fecha: string
+  tipo_tarea_id: number
+  tipo_tarea_codigo: string
+  tipo_tarea_nombre: string
+  tipo_tarea_color: string
+}
+
 export interface GrillaMes {
   anio: number
   mes: number
@@ -116,6 +126,7 @@ export interface GrillaMes {
   cobertura: CoberturaDia[]
   alertas: AlertaDia[]
   estado_por_dia: EstadoDia[]
+  limpieza: AsignacionLimpiezaGrilla[]
 }
 
 export interface TurnoUpsert {
@@ -284,7 +295,7 @@ export interface DashboardEmpleado {
   francos: FrancoMes[]
   feriados_trabajados: FeriadoTrabajado[]
   turnos: TurnoMes[]
-  limpieza: unknown[]
+  limpieza: LimpiezaEmpleado[]
 }
 
 // ---- Vacaciones ----
@@ -469,4 +480,41 @@ export interface EventoUpdate {
   desde?: string
   hasta?: string
   observacion?: string | null
+}
+
+// ---- Limpieza ----
+export interface TipoTareaLimpieza {
+  id: number
+  codigo: string
+  nombre: string
+  color_hex: string
+  activo: boolean
+}
+
+export interface AsignacionLimpieza {
+  id: number
+  empleado_id: number
+  empleado_nombre: string
+  fecha: string
+  tipo_tarea_id: number
+  tipo_tarea_codigo: string
+  tipo_tarea_nombre: string
+  tipo_tarea_color: string
+  observacion: string | null
+}
+
+export interface MesLimpieza {
+  anio: number
+  mes: number
+  tipos: TipoTareaLimpieza[]
+  asignaciones: AsignacionLimpieza[]
+}
+
+export interface LimpiezaEmpleado {
+  fecha: string
+  tipo_tarea_id: number
+  tipo_tarea_codigo: string
+  tipo_tarea_nombre: string
+  tipo_tarea_color: string
+  observacion: string | null
 }

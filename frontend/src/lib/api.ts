@@ -1,12 +1,14 @@
 import type {
   Configuracion,
   DashboardEmpleado,
+  AsignacionLimpieza,
   DetalleVacaciones,
   Evento,
   EventoCreate,
   EventoUpdate,
   ImpactoCobertura,
   ListadoVacaciones,
+  MesLimpieza,
   Franja,
   GrillaMes,
   ModoConteo,
@@ -18,6 +20,7 @@ import type {
   StatsAnio,
   StatsHistorico,
   TipoEvento,
+  TipoTareaLimpieza,
   StatsMes,
   TurnoGrilla,
   TurnoUpsert,
@@ -380,4 +383,40 @@ export const api = {
 
   eliminarEvento: (id: number) =>
     request<void>(`/calendario/eventos/${id}`, { method: 'DELETE' }),
+
+  limpiezaTipos: () =>
+    request<TipoTareaLimpieza[]>('/limpieza/tipos'),
+
+  limpiezaMes: (anio: number, mes: number) =>
+    request<MesLimpieza>(
+      `/limpieza/mes?anio=${anio}&mes=${mes}`,
+    ),
+
+  crearAsignacionLimpieza: (payload: {
+    empleado_id: number
+    fecha: string
+    tipo_tarea_id: number
+    observacion?: string | null
+  }) =>
+    request<AsignacionLimpieza>('/limpieza/asignaciones', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  actualizarAsignacionLimpieza: (
+    id: number,
+    payload: { empleado_id?: number; observacion?: string | null },
+  ) =>
+    request<AsignacionLimpieza>(`/limpieza/asignaciones/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  eliminarAsignacionLimpieza: (id: number) =>
+    request<void>(`/limpieza/asignaciones/${id}`, { method: 'DELETE' }),
+
+  limpiezaAsignacionesPorFecha: (fecha: string) =>
+    request<AsignacionLimpieza[]>(
+      `/limpieza/asignaciones-por-fecha?fecha=${fecha}`,
+    ),
 }

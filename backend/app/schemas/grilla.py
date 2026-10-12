@@ -77,6 +77,16 @@ class EstadoDiaOut(BaseModel):
     alertas: int
 
 
+class AsignacionLimpiezaGrillaOut(BaseModel):
+    id: int
+    empleado_id: int
+    fecha: date
+    tipo_tarea_id: int
+    tipo_tarea_codigo: str
+    tipo_tarea_nombre: str
+    tipo_tarea_color: str
+
+
 class GrillaMesOut(BaseModel):
     anio: int
     mes: int
@@ -87,3 +97,4 @@ class GrillaMesOut(BaseModel):
     cobertura: list[CoberturaDiaOut]
     alertas: list[AlertaDiaOut]
     estado_por_dia: list[EstadoDiaOut]
+    limpieza: list[AsignacionLimpiezaGrillaOut] = []

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import (
     Boolean,
@@ -25,12 +25,20 @@ from app.db.models.enums import (
 from app.db.session import Base
 
 
+
+if TYPE_CHECKING:
+    from app.db.models.personas import Empleado
+
+
 class TipoTareaLimpieza(Base):
     __tablename__ = "tipo_tarea_limpieza"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     codigo: Mapped[str] = mapped_column(String(40), nullable=False, unique=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    color_hex: Mapped[str] = mapped_column(
+        String(7), nullable=False, default="#94a3b8"
+    )
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
@@ -91,6 +99,7 @@ class AsignacionLimpieza(Base):
     )
 
     empleado: Mapped["Empleado"] = relationship(back_populates="asignaciones_limpieza")  # type: ignore[name-defined]
+    tipo_tarea: Mapped["TipoTareaLimpieza"] = relationship()  # type: ignore[name-defined]
 
 
 class CicloLimpieza(Base):
