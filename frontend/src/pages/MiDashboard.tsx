@@ -60,7 +60,7 @@ export default function MiDashboard() {
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-900">
         La grilla oficial esta publicada en la pizarra y en esta pantalla.
-        Es responsabilidad de cada empleado consultarla.
+        Es responsabilidad de cada uno consultarla.
       </div>
 
       <div className="text-center">
