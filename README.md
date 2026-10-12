@@ -186,3 +186,12 @@ Endpoints:
 El dashboard del empleado tiene una pestana "Limpieza" que muestra las
 asignaciones del mes en curso, con la fecha y una pastilla de color
 segun el tipo de tarea.
+
+## Mi panel: solo mes actual
+
+El dashboard personal del empleado muestra SIEMPRE el mes en curso.
+No hay navegacion de mes (se quitaron los botones < y >).
+
+Razon: evitar confusion del empleado mirando meses pasados o futuros.
+La grilla oficial esta publicada mensualmente; el panel refleja el mes
+en vigencia.

@@ -8,8 +8,9 @@ import { useAuth } from '../lib/use-auth'
 export default function MiDashboard() {
   const { user } = useAuth()
   const hoy = new Date()
-  const [anio, setAnio] = useState(hoy.getFullYear())
-  const [mes, setMes] = useState(hoy.getMonth() + 1)
+  // El empleado solo ve el mes actual. No hay navegacion.
+  const anio = hoy.getFullYear()
+  const mes = hoy.getMonth() + 1
   const [data, setData] = useState<DashboardEmpleado | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,24 +34,6 @@ export default function MiDashboard() {
     void cargar()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anio, mes])
-
-  function mesAnterior() {
-    if (mes === 1) {
-      setMes(12)
-      setAnio(anio - 1)
-    } else {
-      setMes(mes - 1)
-    }
-  }
-
-  function mesSiguiente() {
-    if (mes === 12) {
-      setMes(1)
-      setAnio(anio + 1)
-    } else {
-      setMes(mes + 1)
-    }
-  }
 
   if (loading)
     return <p className="text-sm text-slate-500">Cargando tu dashboard...</p>
@@ -80,22 +63,10 @@ export default function MiDashboard() {
         Es responsabilidad de cada empleado consultarla.
       </div>
 
-      <div className="flex items-center justify-center gap-3">
-        <button
-          onClick={mesAnterior}
-          className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-200"
-        >
-          {'<'}
-        </button>
-        <span className="text-sm font-medium min-w-[100px] text-center">
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
           {mesNombre(mes)} {anio}
-        </span>
-        <button
-          onClick={mesSiguiente}
-          className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-200"
-        >
-          {'>'}
-        </button>
+        </h2>
       </div>
 
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
