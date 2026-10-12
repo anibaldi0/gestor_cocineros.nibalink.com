@@ -7,6 +7,7 @@ import type {
   UsuarioCreateResponse,
 } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
+import PasswordInput from '../components/PasswordInput'
 
 type ModoPassword = 'auto' | 'manual'
 
@@ -182,10 +183,9 @@ export default function UsuarioNuevo() {
             Cargar manualmente
           </label>
           {modoPass === 'manual' && (
-            <input
-              type="text"
+            <PasswordInput
               value={passwordManual}
-              onChange={(e) => setPasswordManual(e.target.value)}
+              onChange={setPasswordManual}
               minLength={6}
               maxLength={100}
               placeholder="Minimo 6 caracteres"

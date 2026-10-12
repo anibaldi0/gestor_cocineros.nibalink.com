@@ -20,6 +20,7 @@ export default function UsuarioDetalle() {
   const [error, setError] = useState<string | null>(null)
   const [accion, setAccion] = useState(false)
   const [resetPass, setResetPass] = useState<ResetPasswordResponse | null>(null)
+  const [modalBajaUsuario, setModalBajaUsuario] = useState(false)
 
   const esSuper = user?.roles.includes('SUPERADMIN') ?? false
   const esEditor = user?.roles.includes('EDITOR') ?? false
@@ -82,15 +83,20 @@ export default function UsuarioDetalle() {
     }
   }
 
-  async function desactivar() {
+  function pedirBajaUsuario() {
     if (!usuario) return
     const ok = window.confirm(
-      `Desactivar al usuario "${usuario.username}"? No se borran datos.`,
+      `Seguro que queres desactivar el acceso al sistema del usuario "${usuario.username}"?`,
     )
-    if (!ok) return
+    if (ok) setModalBajaUsuario(true)
+  }
+
+  async function ejecutarBajaUsuario() {
+    if (!usuario) return
     setAccion(true)
     try {
       await api.desactivarUsuario(usuario.id)
+      setModalBajaUsuario(false)
       await cargar()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Error')
@@ -283,7 +289,7 @@ export default function UsuarioDetalle() {
           </p>
           {usuario.activo ? (
             <button
-              onClick={desactivar}
+              onClick={pedirBajaUsuario}
               disabled={accion}
               className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
@@ -299,6 +305,15 @@ export default function UsuarioDetalle() {
             </button>
           )}
         </div>
+      )}
+
+      {modalBajaUsuario && usuario && (
+        <ModalConfirmarBajaUsuario
+          username={usuario.username}
+          procesando={accion}
+          onConfirmar={ejecutarBajaUsuario}
+          onCancelar={() => setModalBajaUsuario(false)}
+        />
       )}
 
       {resetPass && (
@@ -338,6 +353,91 @@ function Item({ label, value }: { label: string; value: string }) {
         {label}
       </dt>
       <dd className="text-slate-800">{value}</dd>
+    </div>
+  )
+}
+
+
+function ModalConfirmarBajaUsuario({
+  username,
+  procesando,
+  onConfirmar,
+  onCancelar,
+}: {
+  username: string
+  procesando: boolean
+  onConfirmar: () => void
+  onCancelar: () => void
+}) {
+  const [texto, setTexto] = useState('')
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !procesando) onCancelar()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onCancelar, procesando])
+
+  const PALABRA = 'BAJA'
+  const coincide = texto.trim().toUpperCase() === PALABRA
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={() => !procesando && onCancelar()}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-white rounded-2xl border border-red-200 p-6 space-y-4"
+      >
+        <header>
+          <h2 className="text-lg font-semibold text-red-700">
+            Confirmar baja del usuario
+          </h2>
+          <p className="text-sm text-slate-600 mt-1">
+            Vas a desactivar el acceso al sistema del usuario{' '}
+            <strong>{username}</strong>. No se borran datos. Se puede
+            reactivar despues.
+          </p>
+        </header>
+
+        <label className="block space-y-1">
+          <span className="text-sm font-medium text-slate-700">
+            Para confirmar, escribi la palabra:
+          </span>
+          <span className="block text-center font-mono font-bold text-lg bg-slate-100 border border-slate-200 rounded px-2 py-2 text-slate-800 select-all tracking-widest">
+            BAJA
+          </span>
+          <input
+            type="text"
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder="Escribi BAJA"
+            autoFocus
+            autoCapitalize="characters"
+            autoCorrect="off"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base text-center uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+        </label>
+
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          <button
+            onClick={onConfirmar}
+            disabled={!coincide || procesando}
+            className="w-full sm:w-auto rounded-lg bg-red-600 text-white px-4 py-3 text-base font-medium disabled:opacity-40"
+          >
+            {procesando ? 'Procesando...' : 'Confirmar baja'}
+          </button>
+          <button
+            onClick={onCancelar}
+            disabled={procesando}
+            className="w-full sm:w-auto rounded-lg bg-slate-100 px-4 py-3 text-base font-medium hover:bg-slate-200 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

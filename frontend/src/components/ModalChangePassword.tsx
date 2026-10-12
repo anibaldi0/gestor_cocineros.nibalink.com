@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { api, ApiError } from '../lib/api'
 import { useAuth } from '../lib/use-auth'
+import PasswordInput from './PasswordInput'
 
 interface Props {
   onDone: () => void
@@ -73,10 +74,9 @@ export default function ModalChangePassword({ onDone, onCancelar }: Props) {
           <span className="text-sm font-medium text-slate-700">
             Contrasena actual
           </span>
-          <input
-            type="password"
+          <PasswordInput
             value={actual}
-            onChange={(e) => setActual(e.target.value)}
+            onChange={setActual}
             className={inputCls}
             required
             autoComplete="current-password"
@@ -87,10 +87,9 @@ export default function ModalChangePassword({ onDone, onCancelar }: Props) {
           <span className="text-sm font-medium text-slate-700">
             Contrasena nueva
           </span>
-          <input
-            type="password"
+          <PasswordInput
             value={nueva}
-            onChange={(e) => setNueva(e.target.value)}
+            onChange={setNueva}
             className={inputCls}
             required
             minLength={6}
@@ -102,10 +101,9 @@ export default function ModalChangePassword({ onDone, onCancelar }: Props) {
           <span className="text-sm font-medium text-slate-700">
             Repetir contrasena nueva
           </span>
-          <input
-            type="password"
+          <PasswordInput
             value={repite}
-            onChange={(e) => setRepite(e.target.value)}
+            onChange={setRepite}
             className={inputCls}
             required
             minLength={6}

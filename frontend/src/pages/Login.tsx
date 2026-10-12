@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../lib/use-auth'
 import { ApiError } from '../lib/api'
+import PasswordInput from '../components/PasswordInput'
 
 export default function Login() {
   const { login } = useAuth()
@@ -50,11 +51,10 @@ export default function Login() {
 
         <label className="block space-y-1">
           <span className="text-sm font-medium text-slate-700">Password</span>
-          <input
-            type="password"
-            autoComplete="current-password"
+          <PasswordInput
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={setPassword}
+            autoComplete="current-password"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-slate-900"
             required
           />

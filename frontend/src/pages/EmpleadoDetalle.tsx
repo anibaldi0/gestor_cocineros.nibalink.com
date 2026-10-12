@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import type { Empleado, ResetPasswordResponse } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
+import PasswordInput from '../components/PasswordInput'
 import { formatDNI } from '../lib/format'
 
 export default function EmpleadoDetalle() {
@@ -316,6 +317,7 @@ function SeccionUsuario({
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [resetPass, setResetPass] = useState<ResetPasswordResponse | null>(null)
+  const [modalBajaUsuario, setModalBajaUsuario] = useState(false)
 
   const usuario = empleado.usuario
 
@@ -370,18 +372,37 @@ function SeccionUsuario({
     }
   }
 
-  async function toggleActivo() {
+  function pedirBajaUsuario() {
     if (!usuario) return
-    const accion = usuario.activo ? 'desactivar' : 'reactivar'
     const ok = window.confirm(
-      `Seguro que queres ${accion} el acceso al sistema del usuario "${usuario.username}"?`,
+      `Seguro que queres desactivar el acceso al sistema del usuario "${usuario.username}"?`,
+    )
+    if (ok) setModalBajaUsuario(true)
+  }
+
+  async function ejecutarBajaUsuario() {
+    if (!usuario) return
+    setProcesando(true)
+    try {
+      await api.actualizarUsuarioDeEmpleado(empleado.id, { activo: false })
+      setModalBajaUsuario(false)
+      await onRefresh()
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Error')
+    } finally {
+      setProcesando(false)
+    }
+  }
+
+  async function reactivarUsuario() {
+    if (!usuario) return
+    const ok = window.confirm(
+      `Reactivar el acceso al sistema del usuario "${usuario.username}"?`,
     )
     if (!ok) return
     setProcesando(true)
     try {
-      await api.actualizarUsuarioDeEmpleado(empleado.id, {
-        activo: !usuario.activo,
-      })
+      await api.actualizarUsuarioDeEmpleado(empleado.id, { activo: true })
       await onRefresh()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Error')
@@ -455,13 +476,23 @@ function SeccionUsuario({
               >
                 {procesando ? 'Procesando...' : 'Resetear contrasena'}
               </button>
-              <button
-                onClick={toggleActivo}
-                disabled={procesando}
-                className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium hover:bg-slate-200 disabled:opacity-50"
-              >
-                {usuario.activo ? 'Desactivar usuario' : 'Reactivar usuario'}
-              </button>
+              {usuario.activo ? (
+                <button
+                  onClick={pedirBajaUsuario}
+                  disabled={procesando}
+                  className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+                >
+                  Desactivar usuario
+                </button>
+              ) : (
+                <button
+                  onClick={reactivarUsuario}
+                  disabled={procesando}
+                  className="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+                >
+                  Reactivar usuario
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -503,12 +534,12 @@ function SeccionUsuario({
                 Cargar manualmente
               </label>
               {!usarAuto && (
-                <input
-                  type="text"
+                <PasswordInput
                   value={passwordManual}
-                  onChange={(e) => setPasswordManual(e.target.value)}
+                  onChange={setPasswordManual}
                   placeholder="Minimo 6 caracteres"
                   className={inputCls}
+                  minLength={6}
                 />
               )}
             </fieldset>
@@ -558,6 +589,15 @@ function SeccionUsuario({
         </p>
       )}
 
+      {modalBajaUsuario && usuario && (
+        <ModalConfirmarBajaUsuario
+          username={usuario.username}
+          procesando={procesando}
+          onConfirmar={ejecutarBajaUsuario}
+          onCancelar={() => setModalBajaUsuario(false)}
+        />
+      )}
+
       {resetPass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
@@ -583,6 +623,91 @@ function SeccionUsuario({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+
+function ModalConfirmarBajaUsuario({
+  username,
+  procesando,
+  onConfirmar,
+  onCancelar,
+}: {
+  username: string
+  procesando: boolean
+  onConfirmar: () => void
+  onCancelar: () => void
+}) {
+  const [texto, setTexto] = useState('')
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !procesando) onCancelar()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onCancelar, procesando])
+
+  const PALABRA = 'BAJA'
+  const coincide = texto.trim().toUpperCase() === PALABRA
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={() => !procesando && onCancelar()}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-white rounded-2xl border border-red-200 p-6 space-y-4"
+      >
+        <header>
+          <h2 className="text-lg font-semibold text-red-700">
+            Confirmar baja del usuario
+          </h2>
+          <p className="text-sm text-slate-600 mt-1">
+            Vas a desactivar el acceso al sistema del usuario{' '}
+            <strong>{username}</strong>. El empleado no podra loguearse, pero
+            sus datos se conservan. Se puede reactivar despues.
+          </p>
+        </header>
+
+        <label className="block space-y-1">
+          <span className="text-sm font-medium text-slate-700">
+            Para confirmar, escribi la palabra:
+          </span>
+          <span className="block text-center font-mono font-bold text-lg bg-slate-100 border border-slate-200 rounded px-2 py-2 text-slate-800 select-all tracking-widest">
+            BAJA
+          </span>
+          <input
+            type="text"
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder="Escribi BAJA"
+            autoFocus
+            autoCapitalize="characters"
+            autoCorrect="off"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base text-center uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+        </label>
+
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          <button
+            onClick={onConfirmar}
+            disabled={!coincide || procesando}
+            className="w-full sm:w-auto rounded-lg bg-red-600 text-white px-4 py-3 text-base font-medium disabled:opacity-40"
+          >
+            {procesando ? 'Procesando...' : 'Confirmar baja'}
+          </button>
+          <button
+            onClick={onCancelar}
+            disabled={procesando}
+            className="w-full sm:w-auto rounded-lg bg-slate-100 px-4 py-3 text-base font-medium hover:bg-slate-200 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
