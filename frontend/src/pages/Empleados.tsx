@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { formatDNI } from '../lib/format'
-import type { Empleado, EmpleadoUsuario } from '../lib/types'
+import type { Empleado, EmpleadoUsuario, ResumenLogin } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
+import { fechaHoraRelativa } from '../lib/fechas'
 
 export default function Empleados() {
   const { user } = useAuth()
   const [empleados, setEmpleados] = useState<Empleado[]>([])
+  const [logins, setLogins] = useState<Map<number, ResumenLogin>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [q, setQ] = useState('')
@@ -27,6 +29,21 @@ export default function Empleados() {
         `/empleados${params.toString() ? `?${params}` : ''}`,
       )
       setEmpleados(data)
+      try {
+        const ls = await api.loginsEmpleadoResumen()
+        // El resumen viene por usuario_id. Lo mapeamos a empleado_id
+        // usando el campo `usuario.id` de cada empleado.
+        const map = new Map<number, ResumenLogin>()
+        for (const e of data) {
+          const uid = e.usuario?.id
+          if (!uid) continue
+          const r = ls.find((x) => x.usuario_id === uid)
+          if (r) map.set(e.id, r)
+        }
+        setLogins(map)
+      } catch {
+        setLogins(new Map())
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error')
     } finally {
@@ -109,8 +126,16 @@ export default function Empleados() {
                         {e.apellido}, {e.nombre}
                       </p>
                       <p className="text-sm text-slate-500">DNI {formatDNI(e.dni)}</p>
-                      <div className="mt-1">
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
                         <PassBadge usuario={e.usuario} />
+                        {logins.get(e.id)?.total !== undefined && (
+                          <span className="text-xs text-slate-400">
+                            {logins.get(e.id)?.total ?? 0} ingreso(s)
+                            {logins.get(e.id)?.ultimo_login
+                              ? ` - ${fechaHoraRelativa(logins.get(e.id)!.ultimo_login)}`
+                              : ''}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {!e.activo && (
@@ -133,6 +158,8 @@ export default function Empleados() {
                   <th className="text-left px-4 py-2 font-medium">Ingreso</th>
                   <th className="text-left px-4 py-2 font-medium">Horas/sem</th>
                   <th className="text-left px-4 py-2 font-medium">Pass</th>
+                  <th className="text-left px-4 py-2 font-medium">Ultimo ingreso</th>
+                  <th className="text-right px-4 py-2 font-medium">Ingresos</th>
                   <th className="text-left px-4 py-2 font-medium">Estado</th>
                 </tr>
               </thead>
@@ -152,6 +179,14 @@ export default function Empleados() {
                     <td className="px-4 py-2 text-slate-600">{e.horas_semana_max}</td>
                     <td className="px-4 py-2">
                       <PassBadge usuario={e.usuario} />
+                    </td>
+                    <td className="px-4 py-2 text-slate-600 text-xs">
+                      {logins.get(e.id)?.ultimo_login
+                        ? fechaHoraRelativa(logins.get(e.id)!.ultimo_login)
+                        : '-'}
+                    </td>
+                    <td className="px-4 py-2 text-right text-slate-600">
+                      {logins.get(e.id)?.total ?? 0}
                     </td>
                     <td className="px-4 py-2">
                       {e.activo ? (

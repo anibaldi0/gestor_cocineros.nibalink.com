@@ -158,7 +158,7 @@ export default function Usuarios() {
                   <th className="text-left px-4 py-2 font-medium">Estado</th>
                   <th className="text-left px-4 py-2 font-medium">Pass</th>
                   <th className="text-left px-4 py-2 font-medium">Ultimo ingreso</th>
-                  <th className="text-right px-4 py-2 font-medium">Total</th>
+                  <th className="text-right px-4 py-2 font-medium">Ingresos</th>
                 </tr>
               </thead>
               <tbody>

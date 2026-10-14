@@ -9,7 +9,13 @@ from app.core.busqueda import SQL_FROM, SQL_TO, normalizar_texto_busqueda
 from app.core.passwords import generar_password_temporal
 from app.core.security import hash_password
 from app.db.models.enums import Rol
+from app.db.models.login import LoginEvento
 from app.db.models.personas import Empleado, Usuario
+from app.schemas.login import (
+    LoginEventoOut,
+    LoginsUsuarioOut,
+    ResumenLoginOut,
+)
 from app.schemas.empleado import (
     EmpleadoCreate,
     EmpleadoOut,
@@ -94,6 +100,107 @@ def listar(
             condiciones.append(Empleado.dni.like(f"%{solo_digitos}%"))
         query = query.filter(or_(*condiciones))
     return query.order_by(Empleado.apellido, Empleado.nombre).all()
+
+
+@router.get(
+    "/logins-resumen",
+    response_model=list[ResumenLoginOut],
+)
+def logins_resumen(
+    db: DbDep, _user: CurrentUserDep
+) -> list[ResumenLoginOut]:
+    """Total de logins y ultimo login por empleado (con usuario vinculado)."""
+    from sqlalchemy import func as sa_func
+
+    rows = (
+        db.query(
+            LoginEvento.usuario_id,
+            sa_func.count(LoginEvento.id).label("total"),
+            sa_func.max(LoginEvento.fecha).label("ultimo"),
+        )
+        .group_by(LoginEvento.usuario_id)
+        .all()
+    )
+    por_usuario = {r.usuario_id: r for r in rows}
+
+    empleados = (
+        db.query(Empleado).filter(Empleado.activo.is_(True)).all()
+    )
+    usuarios = {
+        u.id: u for u in db.query(Usuario).all()
+    }
+
+    resumen: list[ResumenLoginOut] = []
+    for e in empleados:
+        # Encontrar el usuario vinculado a este empleado.
+        usuario = next(
+            (u for u in usuarios.values() if u.empleado_id == e.id),
+            None,
+        )
+        if usuario is None:
+            resumen.append(
+                ResumenLoginOut(
+                    usuario_id=0, total=0, ultimo_login=None
+                )
+            )
+            continue
+        r = por_usuario.get(usuario.id)
+        resumen.append(
+            ResumenLoginOut(
+                usuario_id=usuario.id,
+                total=r.total if r else 0,
+                ultimo_login=r.ultimo if r else None,
+            )
+        )
+    return resumen
+
+
+@router.get(
+    "/{empleado_id}/logins",
+    response_model=LoginsUsuarioOut,
+)
+def logins_de_empleado(
+    db: DbDep,
+    _user: CurrentUserDep,
+    empleado_id: int,
+    limit: int = 20,
+) -> LoginsUsuarioOut:
+    emp = _get_or_404(db, empleado_id)
+    usuario = (
+        db.query(Usuario)
+        .filter(Usuario.empleado_id == emp.id)
+        .one_or_none()
+    )
+    if usuario is None:
+        return LoginsUsuarioOut(
+            usuario_id=0,
+            username='-',
+            total=0,
+            ultimo_login=None,
+            eventos=[],
+        )
+
+    eventos = (
+        db.query(LoginEvento)
+        .filter(LoginEvento.usuario_id == usuario.id)
+        .order_by(LoginEvento.fecha.desc())
+        .limit(limit)
+        .all()
+    )
+    total = (
+        db.query(LoginEvento)
+        .filter(LoginEvento.usuario_id == usuario.id)
+        .count()
+    )
+    ultimo = eventos[0].fecha if eventos else None
+
+    return LoginsUsuarioOut(
+        usuario_id=usuario.id,
+        username=usuario.username,
+        total=total,
+        ultimo_login=ultimo,
+        eventos=[LoginEventoOut.model_validate(e) for e in eventos],
+    )
 
 
 @router.get("/{empleado_id}", response_model=EmpleadoOut)

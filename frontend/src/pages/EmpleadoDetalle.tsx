@@ -5,6 +5,7 @@ import type { Empleado, ResetPasswordResponse } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
 import PasswordInput from '../components/PasswordInput'
 import { formatDNI } from '../lib/format'
+import { fechaHoraRelativa } from '../lib/fechas'
 
 export default function EmpleadoDetalle() {
   const { id } = useParams<{ id: string }>()
@@ -15,6 +16,10 @@ export default function EmpleadoDetalle() {
   const [error, setError] = useState<string | null>(null)
   const [accion, setAccion] = useState(false)
   const [modalBaja, setModalBaja] = useState(false)
+  const [resumenLogins, setResumenLogins] = useState<{
+    total: number
+    ultimo_login: string | null
+  } | null>(null)
 
   const esSuper = user?.roles.includes('SUPERADMIN') ?? false
   const puedeEditar =
@@ -26,6 +31,15 @@ export default function EmpleadoDetalle() {
     setError(null)
     try {
       setEmp(await api.get<Empleado>(`/empleados/${id}`))
+      try {
+        const l = await api.loginsDeEmpleado(Number(id))
+        setResumenLogins({
+          total: l.total,
+          ultimo_login: l.ultimo_login,
+        })
+      } catch {
+        setResumenLogins(null)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error')
     } finally {
@@ -147,6 +161,20 @@ export default function EmpleadoDetalle() {
           </div>
         )}
       </div>
+
+      {resumenLogins && emp.usuario && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6">
+          <h2 className="text-sm font-medium text-slate-700 mb-1">
+            Accesos al sistema
+          </h2>
+          <p className="text-sm text-slate-600">
+            <strong>{resumenLogins.total}</strong> ingreso(s).
+            {resumenLogins.ultimo_login
+              ? ` Ultimo: ${fechaHoraRelativa(resumenLogins.ultimo_login)}.`
+              : ' Nunca ingreso.'}
+          </p>
+        </div>
+      )}
 
       <SeccionUsuario
         empleado={emp}

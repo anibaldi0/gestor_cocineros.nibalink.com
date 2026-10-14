@@ -427,4 +427,10 @@ export const api = {
 
   loginsDeUsuario: (id: number) =>
     request<LoginsUsuario>(`/usuarios/${id}/logins`),
+
+  loginsEmpleadoResumen: () =>
+    request<ResumenLogin[]>('/empleados/logins-resumen'),
+
+  loginsDeEmpleado: (id: number) =>
+    request<LoginsUsuario>(`/empleados/${id}/logins`),
 }
