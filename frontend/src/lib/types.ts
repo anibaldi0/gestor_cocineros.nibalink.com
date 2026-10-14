@@ -518,3 +518,23 @@ export interface LimpiezaEmpleado {
   tipo_tarea_color: string
   observacion: string | null
 }
+
+// ---- Logins ----
+export interface LoginEvento {
+  id: number
+  fecha: string
+}
+
+export interface LoginsUsuario {
+  usuario_id: number
+  username: string
+  total: number
+  ultimo_login: string | null
+  eventos: LoginEvento[]
+}
+
+export interface ResumenLogin {
+  usuario_id: number
+  total: number
+  ultimo_login: string | null
+}

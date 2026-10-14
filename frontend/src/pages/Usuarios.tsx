@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
-import type { UsuarioDetalle } from '../lib/types'
+import type { ResumenLogin, UsuarioDetalle } from '../lib/types'
 import { useAuth } from '../lib/use-auth'
+import { fechaHoraRelativa } from '../lib/fechas'
 
 export default function Usuarios() {
   const { user } = useAuth()
   const [usuarios, setUsuarios] = useState<UsuarioDetalle[]>([])
+  const [logins, setLogins] = useState<Map<number, ResumenLogin>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [q, setQ] = useState('')
@@ -22,7 +24,14 @@ export default function Usuarios() {
       const params: { activo?: boolean; q?: string } = {}
       if (soloActivos) params.activo = true
       if (q.trim()) params.q = q.trim()
-      setUsuarios(await api.usuarios(params))
+      const [us, ls] = await Promise.all([
+        api.usuarios(params),
+        api.loginsResumen().catch(() => [] as ResumenLogin[]),
+      ])
+      setUsuarios(us)
+      const map = new Map<number, ResumenLogin>()
+      for (const l of ls) map.set(l.usuario_id, l)
+      setLogins(map)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Error')
     } finally {
@@ -105,6 +114,12 @@ export default function Usuarios() {
                       <p className="text-sm text-slate-500">
                         {u.roles.join(', ')}
                       </p>
+                      <p className="text-xs text-slate-400">
+                        {logins.get(u.id)?.total ?? 0} ingreso(s)
+                        {logins.get(u.id)?.ultimo_login
+                          ? ` - ${fechaHoraRelativa(logins.get(u.id)!.ultimo_login)}`
+                          : ''}
+                      </p>
                       {u.empleado_nombre && (
                         <p className="text-xs text-slate-400 truncate">
                           {u.empleado_nombre}
@@ -142,6 +157,8 @@ export default function Usuarios() {
                   <th className="text-left px-4 py-2 font-medium">Empleado</th>
                   <th className="text-left px-4 py-2 font-medium">Estado</th>
                   <th className="text-left px-4 py-2 font-medium">Pass</th>
+                  <th className="text-left px-4 py-2 font-medium">Ultimo ingreso</th>
+                  <th className="text-right px-4 py-2 font-medium">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -182,6 +199,14 @@ export default function Usuarios() {
                           Modificada
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-2 text-slate-600 text-xs">
+                      {logins.get(u.id)?.ultimo_login
+                        ? fechaHoraRelativa(logins.get(u.id)!.ultimo_login)
+                        : '-'}
+                    </td>
+                    <td className="px-4 py-2 text-right text-slate-600">
+                      {logins.get(u.id)?.total ?? 0}
                     </td>
                   </tr>
                 ))}

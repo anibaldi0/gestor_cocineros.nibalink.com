@@ -7,7 +7,13 @@ from app.api.deps import CurrentUserDep, DbDep, require_role
 from app.core.passwords import generar_password_temporal
 from app.core.security import hash_password
 from app.db.models.enums import Rol
+from app.db.models.login import LoginEvento
 from app.db.models.personas import Empleado, Usuario, UsuarioRol
+from app.schemas.login import (
+    LoginEventoOut,
+    LoginsUsuarioOut,
+    ResumenLoginOut,
+)
 from app.schemas.usuario import (
     ResetPasswordIn,
     ResetPasswordOut,
@@ -97,6 +103,43 @@ def listar(
 
     usuarios = query.order_by(Usuario.username).all()
     return [_to_detalle(u) for u in usuarios]
+
+
+@router.get(
+    "/logins-resumen",
+    response_model=list[ResumenLoginOut],
+    dependencies=[require_role(Rol.SUPERADMIN)],
+)
+def logins_resumen(db: DbDep) -> list[ResumenLoginOut]:
+    """Total de logins y ultimo login por usuario. Solo superadmin."""
+    from sqlalchemy import func as sa_func
+
+    # Sumatoria y max por usuario.
+    rows = (
+        db.query(
+            LoginEvento.usuario_id,
+            sa_func.count(LoginEvento.id).label("total"),
+            sa_func.max(LoginEvento.fecha).label("ultimo"),
+        )
+        .group_by(LoginEvento.usuario_id)
+        .all()
+    )
+
+    # Incluir usuarios sin logins tambien.
+    usuarios = db.query(Usuario).all()
+    por_usuario = {r.usuario_id: r for r in rows}
+
+    resumen: list[ResumenLoginOut] = []
+    for u in usuarios:
+        r = por_usuario.get(u.id)
+        resumen.append(
+            ResumenLoginOut(
+                usuario_id=u.id,
+                total=r.total if r else 0,
+                ultimo_login=r.ultimo if r else None,
+            )
+        )
+    return resumen
 
 
 @router.get(
@@ -209,6 +252,41 @@ def actualizar(
 # ----------------------------------------------------------------------
 # Reset password (solo SUPERADMIN)
 # ----------------------------------------------------------------------
+@router.get(
+    "/{usuario_id}/logins",
+    response_model=LoginsUsuarioOut,
+    dependencies=[require_role(Rol.SUPERADMIN)],
+)
+def logins_de_usuario(
+    db: DbDep,
+    usuario_id: int,
+    limit: int = 20,
+) -> LoginsUsuarioOut:
+    u = _get_or_404(db, usuario_id)
+
+    eventos = (
+        db.query(LoginEvento)
+        .filter(LoginEvento.usuario_id == usuario_id)
+        .order_by(LoginEvento.fecha.desc())
+        .limit(limit)
+        .all()
+    )
+    total = (
+        db.query(LoginEvento)
+        .filter(LoginEvento.usuario_id == usuario_id)
+        .count()
+    )
+    ultimo = eventos[0].fecha if eventos else None
+
+    return LoginsUsuarioOut(
+        usuario_id=u.id,
+        username=u.username,
+        total=total,
+        ultimo_login=ultimo,
+        eventos=[LoginEventoOut.model_validate(e) for e in eventos],
+    )
+
+
 @router.post(
     "/{usuario_id}/reset-password",
     response_model=ResetPasswordOut,

@@ -11,6 +11,7 @@ from app.db.models import (  # noqa: F401
     configuracion as config_model,
     jornada,
     limpieza,
+    login,
     operativa,
     personas,
     publicacion,

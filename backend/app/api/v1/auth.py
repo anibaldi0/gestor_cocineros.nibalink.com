@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.api.deps import CurrentUserDep, DbDep
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.models.enums import Rol
+from app.db.models.login import LoginEvento
 from app.db.models.personas import Usuario
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.schemas.usuario import ChangePasswordIn
@@ -45,6 +46,11 @@ def login(payload: LoginRequest, db: DbDep) -> TokenResponse:
         roles=[r.value for r in roles],
         modo_activo=modo_activo.value,
     )
+
+    # Registrar el ingreso (append-only).
+    db.add(LoginEvento(usuario_id=usuario.id))
+    db.commit()
+
     return TokenResponse(
         access_token=token,
         debe_cambiar_password=usuario.debe_cambiar_password,

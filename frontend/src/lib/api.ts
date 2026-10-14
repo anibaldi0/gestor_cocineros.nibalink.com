@@ -14,8 +14,10 @@ import type {
   ModoConteo,
   NovedadVacaciones,
   PeriodoGrilla,
+  LoginsUsuario,
   ReglaCobertura,
   ResetPasswordResponse,
+  ResumenLogin,
   Rol,
   StatsAnio,
   StatsHistorico,
@@ -419,4 +421,10 @@ export const api = {
     request<AsignacionLimpieza[]>(
       `/limpieza/asignaciones-por-fecha?fecha=${fecha}`,
     ),
+
+  loginsResumen: () =>
+    request<ResumenLogin[]>('/usuarios/logins-resumen'),
+
+  loginsDeUsuario: (id: number) =>
+    request<LoginsUsuario>(`/usuarios/${id}/logins`),
 }
