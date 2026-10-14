@@ -363,7 +363,7 @@ def reactivar_con_credenciales_nuevas(
     "/{empleado_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
-    dependencies=[require_role(Rol.SUPERADMIN)],
+    dependencies=[require_role(Rol.EDITOR, Rol.SUPERADMIN)],
 )
 def eliminar(db: DbDep, empleado_id: int) -> Response:
     """Soft delete del empleado + cascada al usuario vinculado.

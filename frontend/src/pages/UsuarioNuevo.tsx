@@ -43,6 +43,19 @@ export default function UsuarioNuevo() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+
+    // Si se esta creando un SUPERADMIN, doble confirmacion.
+    if (rol === 'SUPERADMIN') {
+      const ok1 = window.confirm(
+        'Estas por crear un usuario SUPERADMIN. Un superadmin tiene acceso total al sistema, incluida la gestion de otros usuarios y la configuracion. Confirmas?',
+      )
+      if (!ok1) return
+      const ok2 = window.confirm(
+        'Confirmacion final: el usuario SUPERADMIN queda registrado en auditoria con tu usuario y fecha. Crear de todas formas?',
+      )
+      if (!ok2) return
+    }
+
     setLoading(true)
     try {
       const payload = {

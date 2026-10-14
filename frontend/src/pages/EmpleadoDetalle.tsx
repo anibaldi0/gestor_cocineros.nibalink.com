@@ -106,15 +106,25 @@ export default function EmpleadoDetalle() {
             </h1>
             <p className="text-sm text-slate-500">DNI {formatDNI(emp.dni)}</p>
           </div>
-          {emp.activo ? (
-            <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700">
-              Activo
-            </span>
-          ) : (
-            <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-500">
-              Inactivo
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {puedeEditar && (
+              <button
+                onClick={() => navigate(`/empleados/${emp.id}/editar`)}
+                className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200"
+              >
+                Editar
+              </button>
+            )}
+            {emp.activo ? (
+              <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700">
+                Activo
+              </span>
+            ) : (
+              <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-500">
+                Inactivo
+              </span>
+            )}
+          </div>
         </header>
 
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -168,8 +178,7 @@ export default function EmpleadoDetalle() {
               </p>
               <button
                 onClick={pedirBaja}
-                disabled={accion || !esSuper}
-                title={!esSuper ? 'Solo el superadmin puede desactivar empleados' : ''}
+                disabled={accion}
                 className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {accion ? 'Procesando...' : 'Desactivar empleado'}

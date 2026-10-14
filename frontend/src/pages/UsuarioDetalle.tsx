@@ -167,21 +167,31 @@ export default function UsuarioDetalle() {
               {usuario.empleado_nombre && ` - ${usuario.empleado_nombre}`}
             </p>
           </div>
-          <div className="flex flex-col gap-1 items-end">
-            {usuario.activo ? (
-              <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700">
-                Activo
-              </span>
-            ) : (
-              <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-500">
-                Inactivo
-              </span>
+          <div className="flex flex-col gap-2 items-end">
+            {puedeGestionar && (
+              <button
+                onClick={() => navigate(`/usuarios/${usuario.id}/editar`)}
+                className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200"
+              >
+                Editar
+              </button>
             )}
-            {usuario.debe_cambiar_password && (
-              <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
-                Debe cambiar password
-              </span>
-            )}
+            <div className="flex flex-col gap-1 items-end">
+              {usuario.activo ? (
+                <span className="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700">
+                  Activo
+                </span>
+              ) : (
+                <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-500">
+                  Inactivo
+                </span>
+              )}
+              {usuario.debe_cambiar_password && (
+                <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
+                  Debe cambiar password
+                </span>
+              )}
+            </div>
           </div>
         </header>
 
@@ -205,51 +215,7 @@ export default function UsuarioDetalle() {
             Administracion
           </h2>
 
-          {esSuper && (
-            <label className="block space-y-1">
-              <span className="text-sm text-slate-600">Rol</span>
-              <select
-                value={rolActual}
-                onChange={(e) => cambiarRol(e.target.value as Rol)}
-                disabled={accion || esMismo}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base disabled:opacity-50"
-              >
-                <option value="EMPLEADO">Empleado</option>
-                <option value="EDITOR">Editor</option>
-                <option value="SUPERADMIN">Superadmin</option>
-              </select>
-              {esMismo && (
-                <span className="text-xs text-slate-400">
-                  No podes cambiar tu propio rol.
-                </span>
-              )}
-            </label>
-          )}
-
-          {esSuper && rolActual === 'EMPLEADO' && (
-            <label className="block space-y-1">
-              <span className="text-sm text-slate-600">
-                Empleado vinculado
-              </span>
-              <select
-                value={usuario.empleado_id ?? ''}
-                onChange={(e) =>
-                  cambiarEmpleado(e.target.value ? Number(e.target.value) : null)
-                }
-                disabled={accion}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-base disabled:opacity-50"
-              >
-                <option value="">-- Sin vincular --</option>
-                {empleados.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.apellido}, {emp.nombre} (DNI {emp.dni})
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
-          <div className="border-t border-slate-100 pt-4 space-y-3">
+          <div className="space-y-3">
             <button
               onClick={resetearPassword}
               disabled={accion}
@@ -262,6 +228,11 @@ export default function UsuarioDetalle() {
               en el proximo login.
             </p>
           </div>
+
+          <p className="text-xs text-slate-500 border-t border-slate-100 pt-4">
+            Para cambiar el username o el rol del usuario, usa el boton
+            Editar arriba.
+          </p>
         </div>
       )}
 
