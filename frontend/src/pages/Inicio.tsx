@@ -10,6 +10,7 @@ export default function Inicio() {
     (user?.roles.includes('EMPLEADO') ?? false) &&
     !(user?.roles.includes('EDITOR') ?? false) &&
     !(user?.roles.includes('SUPERADMIN') ?? false)
+  const esSuper = user?.roles.includes('SUPERADMIN') ?? false
 
   return (
     <div className="max-w-md mx-auto space-y-6 pt-4">
@@ -83,6 +84,19 @@ export default function Inicio() {
               Plantel, datos y accesos al sistema.
             </div>
           </Link>
+          {esSuper && (
+            <Link
+              to="/usuarios"
+              className="block bg-white rounded-2xl border border-slate-200 p-5 active:bg-slate-50 hover:border-slate-400 transition-colors"
+            >
+              <div className="text-base font-semibold text-slate-900">
+                Gestores
+              </div>
+              <div className="text-sm text-slate-500 mt-1">
+                Superadmins y editores del sistema.
+              </div>
+            </Link>
+          )}
         </div>
       )}
 

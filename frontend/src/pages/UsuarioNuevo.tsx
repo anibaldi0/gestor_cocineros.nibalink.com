@@ -78,11 +78,11 @@ export default function UsuarioNuevo() {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         <h1 className="text-xl font-semibold tracking-tight">
-          Usuario creado
+          Gestor creado
         </h1>
         <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
           <p className="text-sm text-slate-700">
-            El usuario <strong>{creado.username}</strong> fue creado con
+            El gestor <strong>{creado.username}</strong> fue creado con
             rol <strong>{creado.roles.join(', ')}</strong>.
           </p>
 
@@ -133,7 +133,7 @@ export default function UsuarioNuevo() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <h1 className="text-xl font-semibold tracking-tight">Nuevo usuario</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Nuevo gestor</h1>
 
       <form
         onSubmit={onSubmit}

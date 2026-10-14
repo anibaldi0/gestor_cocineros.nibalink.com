@@ -125,7 +125,7 @@ export default function Layout() {
                       `${linkBase} ${isActive ? linkActive : linkIdle}`
                     }
                   >
-                    Usuarios
+                    Gestores
                   </NavLink>
                 )}
                 <NavLink
@@ -228,7 +228,7 @@ export default function Layout() {
                 <MobileNavLink to="/calendario">Calendario</MobileNavLink>
                 <MobileNavLink to="/empleados">Empleados</MobileNavLink>
                 {(user?.roles.includes('SUPERADMIN') ?? false) && (
-                  <MobileNavLink to="/usuarios">Usuarios</MobileNavLink>
+                  <MobileNavLink to="/usuarios">Gestores</MobileNavLink>
                 )}
                 <MobileNavLink to="/limpieza">Limpieza</MobileNavLink>
                 <MobileNavLink to="/vacaciones">Vacaciones</MobileNavLink>

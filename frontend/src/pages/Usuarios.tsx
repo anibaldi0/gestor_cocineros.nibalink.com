@@ -38,13 +38,13 @@ export default function Usuarios() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">Usuarios</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Gestores</h1>
         {puedeCrear && (
           <Link
             to="/usuarios/nuevo"
             className="inline-flex items-center justify-center rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-medium active:bg-slate-800"
           >
-            + Nuevo usuario
+            + Nuevo gestor
           </Link>
         )}
       </div>
@@ -89,7 +89,7 @@ export default function Usuarios() {
       {loading ? (
         <p className="text-sm text-slate-500">Cargando...</p>
       ) : usuarios.length === 0 ? (
-        <p className="text-sm text-slate-500">No hay usuarios para mostrar.</p>
+        <p className="text-sm text-slate-500">No hay gestores para mostrar.</p>
       ) : (
         <>
           <ul className="space-y-2 sm:hidden">

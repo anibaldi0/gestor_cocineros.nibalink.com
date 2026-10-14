@@ -104,7 +104,7 @@ export default function UsuarioEditar() {
         {'<-'} Volver al detalle
       </button>
 
-      <h1 className="text-xl font-semibold tracking-tight">Editar usuario</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Editar gestor</h1>
 
       <form
         onSubmit={onSubmit}

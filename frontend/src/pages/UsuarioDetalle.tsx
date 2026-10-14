@@ -153,7 +153,7 @@ export default function UsuarioDetalle() {
         onClick={() => navigate('/usuarios')}
         className="text-sm text-slate-500 hover:underline"
       >
-        {'<-'} Volver a usuarios
+        {'<-'} Volver a gestores
       </button>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
