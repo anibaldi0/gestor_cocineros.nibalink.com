@@ -69,6 +69,7 @@ class MesLimpiezaOut(BaseModel):
 
 # ---- Estructura para el dashboard del empleado ----
 class LimpiezaEmpleadoOut(BaseModel):
+    id: int
     fecha: date
     tipo_tarea_id: int
     tipo_tarea_codigo: str
@@ -77,3 +78,4 @@ class LimpiezaEmpleadoOut(BaseModel):
     tipo_tarea_color: str
     observacion: Optional[str] = None
     firmada_at: Optional[datetime] = None
+    puede_firmar: bool = False
