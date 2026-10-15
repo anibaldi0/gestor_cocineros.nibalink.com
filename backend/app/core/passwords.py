@@ -1,6 +1,6 @@
 """Generador de passwords memorables de 3 palabras ASCII.
 
-Formato: sujeto-verbo-sustantivo (ej: "tigre-come-pan").
+Formato: sujetoverbosustantivo sin separadores (ej: "tigrecomepan").
 
 Reglas:
 - ASCII puro en el diccionario (sin tildes ni enie).
@@ -40,8 +40,8 @@ SUSTANTIVOS: tuple[str, ...] = (
 
 
 def generar_password_temporal() -> str:
-    """Devuelve una password tipo 'sujeto-verbo-sustantivo'."""
+    """Devuelve una password tipo 'sujetoverbosustantivo' (sin guiones)."""
     s = secrets.choice(SUJETOS)
     v = secrets.choice(VERBOS)
     n = secrets.choice(SUSTANTIVOS)
-    return f"{s}-{v}-{n}"
+    return f"{s}{v}{n}"

@@ -174,12 +174,15 @@ def construir_dashboard(
     )
     limpieza_out = [
         LimpiezaEmpleadoOut(
+            id=r.id,
             fecha=r.fecha,
             tipo_tarea_id=r.tipo_tarea_id,
             tipo_tarea_codigo=r.tipo_tarea.codigo,
             tipo_tarea_nombre=r.tipo_tarea.nombre,
+            tipo_tarea_abreviatura=r.tipo_tarea.abreviatura,
             tipo_tarea_color=r.tipo_tarea.color_hex,
             observacion=r.observacion,
+            firmada_at=r.firmada_at,
         )
         for r in limpieza_rows
     ]

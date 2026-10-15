@@ -6,6 +6,7 @@ from app.api.v1 import (
     calendario_admin,
     empleado_usuario,
     empleados,
+    firma_limpieza,
     estadisticas,
     franjas,
     grilla,
@@ -29,6 +30,7 @@ api_router.include_router(franjas.router)
 api_router.include_router(grilla.router)
 api_router.include_router(limpieza.router)
 api_router.include_router(me.router)
+api_router.include_router(firma_limpieza.router)
 api_router.include_router(publicacion.router)
 api_router.include_router(settings.router)
 api_router.include_router(turnos.router)

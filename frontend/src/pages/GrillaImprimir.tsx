@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../lib/api'
 import {
   colorEncabezadoDia,
+  colorTurnoDia,
   colorEstado,
   etiquetaEstado,
 } from '../lib/colores'
@@ -156,22 +157,31 @@ export default function GrillaImprimir() {
                   return (
                     <td
                       key={d.fecha}
-                      className={`border border-slate-300 text-center text-[9px] leading-tight px-0.5 py-0.5 ${fondo}`}
-                      style={
-                        limpieza
-                          ? {
-                              boxShadow: `inset 0 0 0 2px ${limpieza.tipo_tarea_color}`,
-                            }
-                          : undefined
-                      }
+                      className={`border border-slate-300 text-center text-[9px] leading-tight px-0.5 py-0.5 relative ${fondo}`}
                     >
+                      {limpieza && (
+                        <div
+                          className="absolute top-0 right-0 text-[7px] font-bold text-white px-0.5"
+                          style={{ backgroundColor: limpieza.tipo_tarea_color }}
+                        >
+                          {limpieza.tipo_tarea_abreviatura}
+                        </div>
+                      )}
                       {estado === 'TRABAJO' ? (
                         <>
                           <div className="font-semibold">{t?.horas}</div>
-                          <div className="text-[8px] text-slate-500">
-                            {t?.codigo_corto ?? ''}
-                            {he > 0 ? ` +${he}` : ''}
-                          </div>
+                          {t?.codigo_corto ? (
+                            <div
+                              className={`inline-block text-[8px] px-0.5 rounded ${colorTurnoDia[t.codigo_corto as 'M' | 'T'] ?? ''}`}
+                            >
+                              {t.codigo_corto}
+                            </div>
+                          ) : null}
+                          {he > 0 ? (
+                            <div className="text-[7px] text-red-700">
+                              +{he}
+                            </div>
+                          ) : null}
                         </>
                       ) : estado ? (
                         <div className="font-semibold text-[10px]">

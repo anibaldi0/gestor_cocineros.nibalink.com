@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session, joinedload
 
@@ -39,8 +41,10 @@ def _asig_to_out(a: AsignacionLimpieza) -> AsignacionLimpiezaOut:
         tipo_tarea_id=a.tipo_tarea_id,
         tipo_tarea_codigo=tt.codigo if tt else "?",
         tipo_tarea_nombre=tt.nombre if tt else "?",
+        tipo_tarea_abreviatura=tt.abreviatura if tt else "?",
         tipo_tarea_color=tt.color_hex if tt else "#94a3b8",
         observacion=a.observacion,
+        firmada_at=a.firmada_at,
     )
 
 
@@ -232,6 +236,44 @@ def actualizar_asignacion(
     if "observacion" in data:
         a.observacion = data["observacion"]
 
+    db.commit()
+    db.refresh(a)
+    a = (
+        db.query(AsignacionLimpieza)
+        .options(
+            joinedload(AsignacionLimpieza.empleado),
+            joinedload(AsignacionLimpieza.tipo_tarea),
+        )
+        .filter(AsignacionLimpieza.id == a.id)
+        .one()
+    )
+    return _asig_to_out(a)
+
+
+@router.post(
+    "/asignaciones/{asignacion_id}/firmar-manual",
+    response_model=AsignacionLimpiezaOut,
+    dependencies=[require_role(Rol.EDITOR, Rol.SUPERADMIN)],
+)
+def firmar_manual(
+    db: DbDep,
+    user: CurrentUserDep,
+    asignacion_id: int,
+) -> AsignacionLimpiezaOut:
+    """El editor firma una tarea en nombre del empleado (si se olvido)."""
+    a = db.get(AsignacionLimpieza, asignacion_id)
+    if a is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Asignacion {asignacion_id} no existe",
+        )
+    if a.firmada_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Esta tarea ya fue firmada",
+        )
+    a.firmada_at = datetime.now(tz=timezone.utc)
+    a.firmada_por_usuario_id = user.id
     db.commit()
     db.refresh(a)
     a = (

@@ -113,7 +113,9 @@ export interface AsignacionLimpiezaGrilla {
   tipo_tarea_id: number
   tipo_tarea_codigo: string
   tipo_tarea_nombre: string
+  tipo_tarea_abreviatura: string
   tipo_tarea_color: string
+  firmada_at: string | null
 }
 
 export interface GrillaMes {
@@ -487,6 +489,7 @@ export interface TipoTareaLimpieza {
   id: number
   codigo: string
   nombre: string
+  abreviatura: string
   color_hex: string
   activo: boolean
 }
@@ -499,8 +502,10 @@ export interface AsignacionLimpieza {
   tipo_tarea_id: number
   tipo_tarea_codigo: string
   tipo_tarea_nombre: string
+  tipo_tarea_abreviatura: string
   tipo_tarea_color: string
   observacion: string | null
+  firmada_at: string | null
 }
 
 export interface MesLimpieza {
@@ -511,12 +516,15 @@ export interface MesLimpieza {
 }
 
 export interface LimpiezaEmpleado {
+  id: number
   fecha: string
   tipo_tarea_id: number
   tipo_tarea_codigo: string
   tipo_tarea_nombre: string
+  tipo_tarea_abreviatura: string
   tipo_tarea_color: string
   observacion: string | null
+  firmada_at: string | null
 }
 
 // ---- Logins ----

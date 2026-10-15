@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, ApiError } from '../lib/api'
 import {
   colorCeldaVacia,
+  colorTurnoDia,
   colorEncabezadoDia,
   colorEstado,
   colorHorasExtra,
@@ -594,15 +595,17 @@ export default function Grilla() {
                           ? 'cursor-pointer hover:ring-2 hover:ring-slate-900/20'
                           : ''
                       } ${fondo}`}
-                      style={
-                        limpieza
-                          ? {
-                              boxShadow: `inset 0 0 0 3px ${limpieza.tipo_tarea_color}`,
-                            }
-                          : undefined
-                      }
+
                     >
-                      <div className="py-1 px-0.5 leading-tight">
+                      <div className="py-1 px-0.5 leading-tight flex flex-col items-center gap-0.5">
+                        {limpieza && (
+                          <div
+                            className="text-[8px] font-bold text-white px-1 rounded"
+                            style={{ backgroundColor: limpieza.tipo_tarea_color }}
+                          >
+                            {limpieza.tipo_tarea_abreviatura}
+                          </div>
+                        )}
                         {estado === 'TRABAJO' ? (
                           <>
                             <div className="text-sm font-semibold">
@@ -613,9 +616,13 @@ export default function Grilla() {
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10px]">
-                              {t?.codigo_corto ?? ''}
-                            </div>
+                            {t?.codigo_corto ? (
+                              <div
+                                className={`text-[10px] px-1 rounded ${colorTurnoDia[t.codigo_corto as 'M' | 'T'] ?? ''}`}
+                              >
+                                {t.codigo_corto}
+                              </div>
+                            ) : null}
                           </>
                         ) : estado === 'FRANCO' && he > 0 ? (
                           <div className="text-sm font-semibold text-red-600">

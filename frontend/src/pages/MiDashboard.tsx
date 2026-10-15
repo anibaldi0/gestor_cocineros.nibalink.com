@@ -63,6 +63,8 @@ export default function MiDashboard() {
         Es responsabilidad de cada uno consultarla.
       </div>
 
+      <SeccionTareasHoy data={data} onRefresh={cargar} />
+
       <div className="text-center">
         <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
           {mesNombre(mes)} {anio}
@@ -114,6 +116,130 @@ export default function MiDashboard() {
     </div>
   )
 }
+
+function SeccionTareasHoy({
+  data,
+  onRefresh,
+}: {
+  data: DashboardEmpleado
+  onRefresh: () => Promise<void> | void
+}) {
+  const [procesando, setProcesando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fecha de hoy en formato ISO local (YYYY-MM-DD).
+  const hoy = new Date()
+  const hoyISO = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  const tareasHoy = (data.limpieza ?? []).filter((l) => l.fecha === hoyISO)
+
+  if (tareasHoy.length === 0) return null
+
+  async function firmar(id: number, nombre: string) {
+    const ok1 = window.confirm(
+      `Confirmas que ya hiciste la tarea "${nombre}"?`,
+    )
+    if (!ok1) return
+    const ok2 = window.confirm(
+      'Confirmacion final: esta firma queda registrada con tu usuario y la hora actual. Realmente hiciste la tarea?',
+    )
+    if (!ok2) return
+    setError(null)
+    setProcesando(true)
+    try {
+      await api.firmarLimpieza(id)
+      await onRefresh()
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Error')
+    } finally {
+      setProcesando(false)
+    }
+  }
+
+  async function desfirmar(id: number, nombre: string) {
+    const ok = window.confirm(
+      `Deshacer la firma de "${nombre}"?`,
+    )
+    if (!ok) return
+    setError(null)
+    setProcesando(true)
+    try {
+      await api.desfirmarLimpieza(id)
+      await onRefresh()
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Error')
+    } finally {
+      setProcesando(false)
+    }
+  }
+
+  return (
+    <section className="bg-white rounded-2xl border-2 border-slate-900 p-4 sm:p-6 space-y-3">
+      <header>
+        <h2 className="text-lg font-semibold text-slate-900">
+          Tareas de hoy
+        </h2>
+        <p className="text-sm text-slate-500">
+          Marca cada tarea cuando la termines.
+        </p>
+      </header>
+
+      <ul className="space-y-2">
+        {tareasHoy.map((t) => {
+          const firmada = t.firmada_at !== null
+          return (
+            <li
+              key={t.id}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-slate-200 rounded-xl p-3"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="text-sm font-bold text-white px-2 py-1 rounded"
+                  style={{ backgroundColor: t.tipo_tarea_color }}
+                >
+                  {t.tipo_tarea_nombre}
+                </span>
+                {firmada && t.firmada_at && (
+                  <span className="text-xs text-emerald-700">
+                    Hecha a las{' '}
+                    {new Date(t.firmada_at).toLocaleTimeString('es-AR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                )}
+              </div>
+              {firmada ? (
+                <button
+                  onClick={() => desfirmar(t.id, t.tipo_tarea_nombre)}
+                  disabled={procesando}
+                  className="rounded-lg bg-slate-100 text-slate-700 px-3 py-2 text-sm font-medium hover:bg-slate-200 disabled:opacity-50"
+                >
+                  Deshacer
+                </button>
+              ) : (
+                <button
+                  onClick={() => firmar(t.id, t.tipo_tarea_nombre)}
+                  disabled={procesando}
+                  className="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {procesando ? 'Procesando...' : 'Ya hice la tarea'}
+                </button>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {error}
+        </p>
+      )}
+    </section>
+  )
+}
+
 
 function mesNombre(m: number): string {
   return (

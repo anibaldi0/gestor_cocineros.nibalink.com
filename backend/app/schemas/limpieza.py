@@ -22,6 +22,7 @@ class TipoTareaLimpiezaOut(BaseModel):
     id: int
     codigo: str
     nombre: str
+    abreviatura: str
     color_hex: str
     activo: bool
 
@@ -36,8 +37,10 @@ class AsignacionLimpiezaOut(BaseModel):
     tipo_tarea_id: int
     tipo_tarea_codigo: str
     tipo_tarea_nombre: str
+    tipo_tarea_abreviatura: str
     tipo_tarea_color: str
     observacion: Optional[str] = None
+    firmada_at: Optional[datetime] = None
 
 
 class AsignacionLimpiezaCreate(BaseModel):
@@ -70,5 +73,7 @@ class LimpiezaEmpleadoOut(BaseModel):
     tipo_tarea_id: int
     tipo_tarea_codigo: str
     tipo_tarea_nombre: str
+    tipo_tarea_abreviatura: str
     tipo_tarea_color: str
     observacion: Optional[str] = None
+    firmada_at: Optional[datetime] = None

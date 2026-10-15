@@ -439,4 +439,22 @@ export const api = {
       `/grilla/rellenar-huecos?anio=${anio}&mes=${mes}`,
       { method: 'POST' },
     ),
+
+  firmarLimpieza: (asignacionId: number) =>
+    request<AsignacionLimpieza>(
+      `/me/firmar-limpieza/${asignacionId}`,
+      { method: 'POST' },
+    ),
+
+  desfirmarLimpieza: (asignacionId: number) =>
+    request<AsignacionLimpieza>(
+      `/me/firmar-limpieza/${asignacionId}`,
+      { method: 'DELETE' },
+    ),
+
+  firmarLimpiezaManual: (asignacionId: number) =>
+    request<AsignacionLimpieza>(
+      `/limpieza/asignaciones/${asignacionId}/firmar-manual`,
+      { method: 'POST' },
+    ),
 }

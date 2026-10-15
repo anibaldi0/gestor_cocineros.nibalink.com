@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -84,7 +84,9 @@ class AsignacionLimpiezaGrillaOut(BaseModel):
     tipo_tarea_id: int
     tipo_tarea_codigo: str
     tipo_tarea_nombre: str
+    tipo_tarea_abreviatura: str
     tipo_tarea_color: str
+    firmada_at: Optional[datetime] = None
 
 
 class GrillaMesOut(BaseModel):

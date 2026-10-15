@@ -237,9 +237,24 @@ TIPOS_EVENTO: list[dict] = [
 # Tipos de tarea de limpieza
 # ------------------------------------------------------------------
 TIPOS_TAREA_LIMPIEZA: list[dict] = [
-    {"codigo": "CAMARA", "nombre": "Camara", "color_hex": "#06b6d4"},
-    {"codigo": "BANO", "nombre": "Bano", "color_hex": "#8b5cf6"},
-    {"codigo": "SECTOR", "nombre": "Sector", "color_hex": "#22c55e"},
+    {
+        "codigo": "CAMARA",
+        "nombre": "Camara",
+        "abreviatura": "CAM",
+        "color_hex": "#06b6d4",
+    },
+    {
+        "codigo": "BANO",
+        "nombre": "Bano",
+        "abreviatura": "BN",
+        "color_hex": "#8b5cf6",
+    },
+    {
+        "codigo": "SECTOR",
+        "nombre": "Sector",
+        "abreviatura": "SECT",
+        "color_hex": "#22c55e",
+    },
 ]
 
 # ------------------------------------------------------------------

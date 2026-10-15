@@ -36,6 +36,9 @@ class TipoTareaLimpieza(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     codigo: Mapped[str] = mapped_column(String(40), nullable=False, unique=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    abreviatura: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="?"
+    )
     color_hex: Mapped[str] = mapped_column(
         String(7), nullable=False, default="#94a3b8"
     )
@@ -96,6 +99,10 @@ class AsignacionLimpieza(Base):
     )
     fecha_asignacion: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    firmada_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    firmada_por_usuario_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("usuario.id", ondelete="SET NULL")
     )
 
     empleado: Mapped["Empleado"] = relationship(back_populates="asignaciones_limpieza")  # type: ignore[name-defined]
