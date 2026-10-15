@@ -9,6 +9,7 @@ import EmpleadoDetalle from './pages/EmpleadoDetalle'
 import EmpleadoEditar from './pages/EmpleadoEditar'
 import Grilla from './pages/Grilla'
 import Limpieza from './pages/Limpieza'
+import LimpiezaImprimir from './pages/LimpiezaImprimir'
 import Inicio from './pages/Inicio'
 import GrillaImprimir from './pages/GrillaImprimir'
 import MiDashboard from './pages/MiDashboard'
@@ -77,6 +78,7 @@ export default function App() {
             <Route path="/inicio" element={<Inicio />} />
             <Route path="/grilla" element={<Grilla />} />
             <Route path="/limpieza" element={<Limpieza />} />
+            <Route path="/limpieza/imprimir" element={<LimpiezaImprimir />} />
             <Route path="/grilla/imprimir" element={<GrillaImprimir />} />
             <Route path="/mi-dashboard" element={<MiDashboard />} />
             <Route path="/usuarios" element={<Usuarios />} />

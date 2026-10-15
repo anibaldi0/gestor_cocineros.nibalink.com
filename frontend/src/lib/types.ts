@@ -525,6 +525,7 @@ export interface LimpiezaEmpleado {
   tipo_tarea_color: string
   observacion: string | null
   firmada_at: string | null
+  puede_firmar: boolean
 }
 
 // ---- Logins ----

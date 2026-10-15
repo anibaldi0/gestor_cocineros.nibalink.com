@@ -23,6 +23,13 @@ def _hoy_utc() -> date_type:
     return datetime.now(tz=timezone.utc).date()
 
 
+def _dentro_de_ventana(fecha: date_type) -> bool:
+    """La tarea se puede firmar/desfirmar hasta 7 dias despues de su fecha."""
+    hoy = _hoy_utc()
+    delta = (hoy - fecha).days
+    return 0 <= delta <= 7
+
+
 def _to_out(a: AsignacionLimpieza) -> AsignacionLimpiezaOut:
     return AsignacionLimpiezaOut(
         id=a.id,
@@ -75,10 +82,10 @@ def firmar(
             status_code=status.HTTP_409_CONFLICT,
             detail="Esta tarea ya fue firmada",
         )
-    if a.fecha != _hoy_utc():
+    if not _dentro_de_ventana(a.fecha):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Solo podes firmar tareas del dia de hoy",
+            detail="Solo podes firmar tareas de los ultimos 7 dias",
         )
 
     a.firmada_at = datetime.now(tz=timezone.utc)

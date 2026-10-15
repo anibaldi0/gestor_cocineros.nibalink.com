@@ -7,7 +7,7 @@ gestion.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
@@ -172,6 +172,14 @@ def construir_dashboard(
         .order_by(AsignacionLimpieza.fecha)
         .all()
     )
+    hoy = datetime.now(tz=timezone.utc).date()
+
+    def _puede_firmar(fecha: date, firmada_at) -> bool:
+        if firmada_at is not None:
+            return False
+        delta = (hoy - fecha).days
+        return 0 <= delta <= 7
+
     limpieza_out = [
         LimpiezaEmpleadoOut(
             id=r.id,
@@ -183,6 +191,7 @@ def construir_dashboard(
             tipo_tarea_color=r.tipo_tarea.color_hex,
             observacion=r.observacion,
             firmada_at=r.firmada_at,
+            puede_firmar=_puede_firmar(r.fecha, r.firmada_at),
         )
         for r in limpieza_rows
     ]

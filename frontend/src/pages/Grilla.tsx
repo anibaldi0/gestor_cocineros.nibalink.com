@@ -599,11 +599,25 @@ export default function Grilla() {
                     >
                       <div className="py-1 px-0.5 leading-tight flex flex-col items-center gap-0.5">
                         {limpieza && (
-                          <div
-                            className="text-[8px] font-bold text-white px-1 rounded"
-                            style={{ backgroundColor: limpieza.tipo_tarea_color }}
-                          >
-                            {limpieza.tipo_tarea_abreviatura}
+                          <div className="flex items-center gap-0.5">
+                            <div
+                              className="text-[8px] font-bold text-white px-1 rounded"
+                              style={{ backgroundColor: limpieza.tipo_tarea_color }}
+                            >
+                              {limpieza.tipo_tarea_abreviatura}
+                            </div>
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full ${
+                                limpieza.firmada_at
+                                  ? 'bg-green-600'
+                                  : 'bg-red-600'
+                              }`}
+                              title={
+                                limpieza.firmada_at
+                                  ? 'Tarea firmada'
+                                  : 'Tarea sin firmar'
+                              }
+                            />
                           </div>
                         )}
                         {estado === 'TRABAJO' ? (
