@@ -124,6 +124,7 @@ export default function Grilla() {
   const [panelAlertas, setPanelAlertas] = useState(false)
   const [publicando, setPublicando] = useState(false)
   const [confirmPublicar, setConfirmPublicar] = useState(false)
+  const [rellenando, setRellenando] = useState(false)
   const [diaHover, setDiaHover] = useState<{
     fecha: string
     x: number
@@ -131,6 +132,7 @@ export default function Grilla() {
   } | null>(null)
   const [diaModal, setDiaModal] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollPosRef = useRef<{ left: number; top: number } | null>(null)
 
   function onScrollGrilla(e: React.UIEvent<HTMLDivElement>) {
     const sl = e.currentTarget.scrollLeft
@@ -144,6 +146,13 @@ export default function Grilla() {
   const puedeEditar = esGestor
 
   async function cargar() {
+    // Guardar la posicion actual del scroll antes de desmontar la tabla.
+    if (scrollRef.current) {
+      scrollPosRef.current = {
+        left: scrollRef.current.scrollLeft,
+        top: scrollRef.current.scrollTop,
+      }
+    }
     setLoading(true)
     setError(null)
     try {
@@ -160,6 +169,15 @@ export default function Grilla() {
     void cargar()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anio, mes])
+
+  // Restaurar la posicion del scroll despues de cada carga.
+  useEffect(() => {
+    if (loading || !grilla) return
+    if (!scrollRef.current || !scrollPosRef.current) return
+    scrollRef.current.scrollLeft = scrollPosRef.current.left
+    scrollRef.current.scrollTop = scrollPosRef.current.top
+    scrollPosRef.current = null
+  }, [loading, grilla])
 
   useEffect(() => {
     void (async () => {
@@ -213,6 +231,29 @@ export default function Grilla() {
     }
     return map
   }, [grilla])
+
+  async function rellenarHuecos() {
+    const ok = window.confirm(
+      `Rellenar huecos de ${nombreMes(mes)} ${anio}? Se van a crear turnos M (8hs) para todos los empleados activos en los dias L-V no feriados que esten vacios. No se toca lo ya cargado.`,
+    )
+    if (!ok) return
+    setRellenando(true)
+    try {
+      const res = await api.rellenarHuecos(anio, mes)
+      if (res.creados === 0) {
+        alert('No hay huecos para rellenar. Todos los dias L-V ya tienen turnos.')
+      } else {
+        alert(
+          `Se crearon ${res.creados} turnos en ${res.empleados} empleados x ${res.dias_habiles} dias habiles.`,
+        )
+      }
+      await cargar()
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : 'Error')
+    } finally {
+      setRellenando(false)
+    }
+  }
 
   async function publicar() {
     setPublicando(true)
@@ -314,6 +355,16 @@ export default function Grilla() {
           </h1>
           {esGestor && (
             <div className="flex items-center gap-2">
+              {grilla.estado_periodo === 'BORRADOR' && (
+                <button
+                  onClick={rellenarHuecos}
+                  disabled={rellenando}
+                  className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-200 disabled:opacity-50"
+                  title="Rellena los dias L-V vacios con turno M de 8hs"
+                >
+                  {rellenando ? 'Rellenando...' : 'Rellenar huecos'}
+                </button>
+              )}
               {grilla.estado_periodo === 'BORRADOR' ? (
                 <button
                   onClick={pedirPublicar}

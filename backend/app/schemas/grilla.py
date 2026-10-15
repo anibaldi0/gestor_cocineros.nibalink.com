@@ -98,3 +98,11 @@ class GrillaMesOut(BaseModel):
     alertas: list[AlertaDiaOut]
     estado_por_dia: list[EstadoDiaOut]
     limpieza: list[AsignacionLimpiezaGrillaOut] = []
+
+
+class RellenoHuecosOut(BaseModel):
+    anio: int
+    mes: int
+    empleados: int
+    dias_habiles: int
+    creados: int

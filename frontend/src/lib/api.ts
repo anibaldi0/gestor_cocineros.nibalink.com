@@ -433,4 +433,10 @@ export const api = {
 
   loginsDeEmpleado: (id: number) =>
     request<LoginsUsuario>(`/empleados/${id}/logins`),
+
+  rellenarHuecos: (anio: number, mes: number) =>
+    request<{ anio: number; mes: number; empleados: number; dias_habiles: number; creados: number }>(
+      `/grilla/rellenar-huecos?anio=${anio}&mes=${mes}`,
+      { method: 'POST' },
+    ),
 }
