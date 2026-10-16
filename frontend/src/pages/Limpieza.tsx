@@ -17,6 +17,7 @@ export default function Limpieza() {
   const [empleados, setEmpleados] = useState<Empleado[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [soloSinFirmar, setSoloSinFirmar] = useState(false)
   const [celdaEditando, setCeldaEditando] = useState<{
     fecha: string
     tipoId: number
@@ -114,6 +115,15 @@ export default function Limpieza() {
           >
             Imprimir reportes
           </a>
+          <label className="inline-flex items-center gap-2 text-xs text-slate-600 px-2">
+            <input
+              type="checkbox"
+              checked={soloSinFirmar}
+              onChange={(e) => setSoloSinFirmar(e.target.checked)}
+              className="rounded"
+            />
+            Solo sin firmar
+          </label>
           <button
             onClick={mesAnterior}
             className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-200"
@@ -182,11 +192,27 @@ export default function Limpieza() {
                       }
                       style={{
                         backgroundColor: a ? `${t.color_hex}22` : undefined,
+                        opacity:
+                          soloSinFirmar && a && a.firmada_at
+                            ? 0.35
+                            : 1,
                       }}
                     >
                       {a ? (
-                        <div className="text-[11px] font-medium truncate">
-                          {a.empleado_nombre}
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="text-[11px] font-medium truncate">
+                            {a.empleado_nombre}
+                          </span>
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                              a.firmada_at ? 'bg-green-600' : 'bg-red-600'
+                            }`}
+                            title={
+                              a.firmada_at
+                                ? `Firmada ${new Date(a.firmada_at).toLocaleString('es-AR')}`
+                                : 'Sin firmar'
+                            }
+                          />
                         </div>
                       ) : (
                         <div className="text-[10px] text-slate-300">-</div>
@@ -281,6 +307,23 @@ function ModalCeldaLimpieza({
     }
   }
 
+  async function firmarManual() {
+    if (!asignacion) return
+    const ok = window.confirm(
+      `Marcar como firmada la tarea de ${tipo.nombre} del ${fecha}? Queda registrado con tu usuario.`,
+    )
+    if (!ok) return
+    setLoading(true)
+    try {
+      await api.firmarLimpiezaManual(asignacion.id)
+      await onGuardado()
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function eliminar() {
     if (!asignacion) return
     const ok = window.confirm(
@@ -362,6 +405,29 @@ function ModalCeldaLimpieza({
           <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             {error}
           </p>
+        )}
+
+        {asignacion && !asignacion.firmada_at && (
+          <div className="border-t border-slate-200 pt-3">
+            <button
+              onClick={firmarManual}
+              disabled={loading}
+              className="w-full rounded-lg bg-emerald-600 text-white px-4 py-3 text-base font-medium hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {loading ? 'Procesando...' : 'Marcar como firmada'}
+            </button>
+            <p className="text-xs text-slate-500 mt-2 text-center">
+              Usalo si el empleado se olvido de firmar. Queda registrado que
+              firmaste vos.
+            </p>
+          </div>
+        )}
+
+        {asignacion && asignacion.firmada_at && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-xs text-emerald-900">
+            Firmada el{' '}
+            {new Date(asignacion.firmada_at).toLocaleString('es-AR')}
+          </div>
         )}
 
         <div className="flex flex-col sm:flex-row gap-2 pt-2">

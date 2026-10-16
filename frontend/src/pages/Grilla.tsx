@@ -338,6 +338,37 @@ export default function Grilla() {
     }
   }
 
+  // Los empleados puros solo ven la grilla si el mes esta publicado.
+  if (
+    !loading &&
+    !error &&
+    grilla &&
+    !esGestor &&
+    grilla.estado_periodo !== 'PUBLICADO'
+  ) {
+    return (
+      <div className="max-w-md mx-auto space-y-6 pt-8 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Grilla mensual
+        </h1>
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-amber-900 space-y-2">
+          <p className="text-lg font-medium">
+            La grilla de este mes todavia no fue publicada.
+          </p>
+          <p className="text-sm">
+            Cuando el editor la publique vas a poder verla aca.
+          </p>
+        </div>
+        <button
+          onClick={() => void cargar()}
+          className="rounded-lg bg-slate-900 text-white px-4 py-3 text-base font-medium"
+        >
+          Actualizar
+        </button>
+      </div>
+    )
+  }
+
   if (loading) return <p className="text-sm text-slate-500">Cargando grilla...</p>
   if (error)
     return (
@@ -599,25 +630,19 @@ export default function Grilla() {
                     >
                       <div className="py-1 px-0.5 leading-tight flex flex-col items-center gap-0.5">
                         {limpieza && (
-                          <div className="flex items-center gap-0.5">
-                            <div
-                              className="text-[8px] font-bold text-white px-1 rounded"
-                              style={{ backgroundColor: limpieza.tipo_tarea_color }}
-                            >
-                              {limpieza.tipo_tarea_abreviatura}
-                            </div>
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full ${
-                                limpieza.firmada_at
-                                  ? 'bg-green-600'
-                                  : 'bg-red-600'
-                              }`}
-                              title={
-                                limpieza.firmada_at
-                                  ? 'Tarea firmada'
-                                  : 'Tarea sin firmar'
-                              }
-                            />
+                          <div
+                            className={`text-[8px] font-bold text-white px-1 rounded ${
+                              limpieza.firmada_at
+                                ? 'bg-green-600'
+                                : 'bg-red-600'
+                            }`}
+                            title={
+                              limpieza.firmada_at
+                                ? `Firmada: ${limpieza.tipo_tarea_nombre}`
+                                : `Sin firmar: ${limpieza.tipo_tarea_nombre}`
+                            }
+                          >
+                            {limpieza.tipo_tarea_abreviatura}
                           </div>
                         )}
                         {estado === 'TRABAJO' ? (

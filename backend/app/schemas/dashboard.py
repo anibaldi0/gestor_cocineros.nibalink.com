@@ -57,6 +57,8 @@ class TurnoMesOut(BaseModel):
 
 
 class DashboardEmpleadoOut(BaseModel):
+    puede_ver: bool = True
+    estado_periodo: str = "BORRADOR"
     empleado: EmpleadoInfoOut
     anio: int
     mes: int

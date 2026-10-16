@@ -290,6 +290,8 @@ export interface TurnoMes {
 }
 
 export interface DashboardEmpleado {
+  puede_ver: boolean
+  estado_periodo: string
   empleado: EmpleadoInfo
   anio: number
   mes: number

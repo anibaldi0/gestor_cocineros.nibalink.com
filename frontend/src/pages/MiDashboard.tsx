@@ -47,6 +47,31 @@ export default function MiDashboard() {
 
   const { empleado, stats } = data
 
+  if (!data.puede_ver) {
+    return (
+      <div className="max-w-md mx-auto space-y-6 pt-8 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Hola, {user?.username}
+        </h1>
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-amber-900 space-y-2">
+          <p className="text-lg font-medium">
+            La grilla de este mes todavia no fue publicada.
+          </p>
+          <p className="text-sm">
+            Cuando el editor la publique vas a poder ver tus turnos,
+            francos, tareas y vacaciones aca.
+          </p>
+        </div>
+        <button
+          onClick={() => void cargar()}
+          className="rounded-lg bg-slate-900 text-white px-4 py-3 text-base font-medium"
+        >
+          Actualizar
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
       <header className="space-y-1">

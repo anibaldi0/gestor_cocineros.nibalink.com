@@ -13,6 +13,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from app.db.models.jornada import Turno
+from app.services.publicacion import get_periodo
 from app.db.models.limpieza import AsignacionLimpieza
 from app.db.models.personas import Empleado, Usuario
 from app.schemas.limpieza import LimpiezaEmpleadoOut
@@ -196,7 +197,18 @@ def construir_dashboard(
         for r in limpieza_rows
     ]
 
+    periodo = get_periodo(db, anio, mes)
+    estado_periodo = periodo.estado.value if periodo else "BORRADOR"
+    es_empleado_puro = (
+        "EMPLEADO" in {ur.rol.value for ur in usuario.roles}
+        and "EDITOR" not in {ur.rol.value for ur in usuario.roles}
+        and "SUPERADMIN" not in {ur.rol.value for ur in usuario.roles}
+    )
+    puede_ver = (not es_empleado_puro) or estado_periodo == "PUBLICADO"
+
     return DashboardEmpleadoOut(
+        puede_ver=puede_ver,
+        estado_periodo=estado_periodo,
         empleado=EmpleadoInfoOut(
             id=empleado.id,
             nombre=empleado.nombre,

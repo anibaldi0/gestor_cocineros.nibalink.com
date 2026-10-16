@@ -73,6 +73,6 @@ export const colorHorasExtra = 'bg-red-200 text-red-900'
 
 /** Colores de la pastilla M/T (fondo solido, texto blanco, negrita). */
 export const colorTurnoDia: Record<'M' | 'T', string> = {
-  M: 'bg-sky-600 text-white font-bold',
-  T: 'bg-amber-600 text-white font-bold',
+  M: 'bg-amber-600 text-white font-bold',
+  T: 'bg-sky-600 text-white font-bold',
 }

@@ -195,3 +195,22 @@ No hay navegacion de mes (se quitaron los botones < y >).
 Razon: evitar confusion del empleado mirando meses pasados o futuros.
 La grilla oficial esta publicada mensualmente; el panel refleja el mes
 en vigencia.
+
+## Pendiente: snapshot de publicacion
+
+Hoy el empleado ve la grilla "viva" mientras el mes esta PUBLICADO. Si el
+editor edita algo, el empleado lo ve on-the-fly. No hay version congelada.
+
+El plan es guardar un snapshot del contenido al publicar (columna JSONB en
+periodo_grilla), de modo que:
+
+- El empleado vea la ultima version publicada, no la viva.
+- El editor pueda editar sin que se refleje.
+- Al "republicar", el snapshot se actualiza con la grilla actual.
+
+Mientras tanto:
+- El PDF impreso y colgado en la pizarra funciona como "version oficial".
+- El editor puede usar "Reabrir mes" para volver a borrador si necesita
+  editar sin que los empleados vean los cambios.
+
+Prioridad: post-MVP. No bloquea el uso real.
